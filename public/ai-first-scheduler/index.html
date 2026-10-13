@@ -3897,15 +3897,20 @@ async function fetchOutcomes() {
       return;
     }
     const data = await res.json();
+    console.log('✓ Fetched outcomes:', data.outcomes?.length, 'outcomes');
     if (data && data.outcomes && Array.isArray(data.outcomes)) {
       outcomeData = data;
+      console.log('✓ Set outcomeData with', data.outcomes.length, 'outcomes');
       if (data.featureOutcomeMap && typeof data.featureOutcomeMap === 'object') {
         mapFeaturesToOutcomes();
       }
       if (data.outcomes.length > 0) {
         populateOutcomeDropdown();
+        console.log('✓ Populated outcome dropdown with', data.outcomes.length, 'outcomes');
       }
       run();
+    } else {
+      console.warn('Invalid outcomes response:', data);
     }
   } catch (err) {
     console.warn('Failed to fetch outcomes (non-blocking):', err);
