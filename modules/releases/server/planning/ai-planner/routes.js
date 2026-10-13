@@ -147,10 +147,10 @@ module.exports = function registerAIPlannerRoutes(router, context) {
       // Extract outcomes from live feature parent links (100% from Jira, same 12h sync as features)
       const outcomeMap = extractOutcomesFromFeatures(allFeatures);
 
-      // Convert to ordered array matching PRIORITY_OUTCOMES order
+      // Convert to ordered array matching PRIORITY_OUTCOMES order (include all 22, even if empty)
       const outcomes = PRIORITY_OUTCOMES
         .map(key => outcomeMap[key])
-        .filter(outcome => outcome && outcome.children.length > 0);
+        .filter(outcome => outcome);
 
       // Calculate metrics (in-plan count, % complete, confidence, status)
       const outcomesWithMetrics = calculateOutcomeMetrics(outcomes, inPlanFeatures, allFeatures);
