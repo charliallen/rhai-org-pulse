@@ -2900,6 +2900,11 @@ window.addEventListener('message', function(e){
       schedule(mapped);
       allData = mapped;
       dataSource = 'live';
+      // Re-apply outcome mappings after postMessage data load to prevent numbers from disappearing
+      if (outcomeData && outcomeData.outcomes && outcomeData.outcomes.length > 0) {
+        console.log('✓ Re-applying outcome mapping after postMessage refresh');
+        mapFeaturesToOutcomes();
+      }
     } catch (err) {
       console.error('AI Planner: could not schedule live data, keeping previous rows', err);
     }
