@@ -104,14 +104,17 @@ Important rules:
   `rhoai_version`, `telemetry_suite`, and `invocation_id`. Product bugs and UX
   defects from the same execution are separated into newly opened Jira issues
   and known issues encountered without opening another issue.
+- The dashboard table omits task counts; task outcomes remain available in the
+  execution detail and workflow history views.
 - Stakeholder-facing test outcomes distinguish `PASS` from product or UX failures
   (`FAIL`, when a Jira-linked `PRODUCT_BUG` or `UX_DEFECT` finding is linked) and environmental failures
   (`SKIP`, when an unsuccessful test has no product or UX issue finding). Raw task
   verdicts remain unchanged.
 - Jira defaults to one exact test-suite run and can switch explicitly to all
   product bugs and UX defects for a RHOAI release, a date range, or all recorded time.
-- Trends defaults to the most recently active test suite across all RHOAI
-  versions. It charts pass rate, test volume, newly opened product or UX issues,
+- Trends defaults to Release Gate when it is available and the URL does not
+  specify a suite. Otherwise it uses the most recently active test suite across
+  all RHOAI versions. It charts pass rate, test volume, newly opened product or UX issues,
   and known issues per invocation, with version rollups and exact-run links
   back to the dashboard. Date and release filters remain shareable in the URL.
 - Compare requires a test-run group and two dated invocations. Each side is one
