@@ -38,6 +38,17 @@ const PRIORITY_OUTCOMES = [
 ];
 
 /**
+ * Build title → key mapping for quick outcome lookup
+ */
+function buildOutcomeTitleMap() {
+  const titleMap = {};
+  PRIORITY_OUTCOMES.forEach(outcome => {
+    titleMap[outcome.title] = outcome.key;
+  });
+  return titleMap;
+}
+
+/**
  * Extract outcomes from live feature data (already from Jira 12h sync).
  * Build map of outcome key → { key, title, children }.
  *
@@ -46,6 +57,7 @@ const PRIORITY_OUTCOMES = [
  */
 function extractOutcomesFromFeatures(allFeatures) {
   const outcomes = {};
+  const titleMap = buildOutcomeTitleMap();
 
   // Initialize all outcomes (1-22)
   PRIORITY_OUTCOMES.forEach((outcome, index) => {
@@ -58,16 +70,24 @@ function extractOutcomesFromFeatures(allFeatures) {
   });
 
   // Scan features for their parent outcome links
-  // Features store parent outcome in: f.parentKey (e.g., "RHAISTRAT-2046")
+  // Features can have parent in two forms:
+  // 1. f.parentKey = "RHAISTRAT-2046" (direct key)
+  // 2. f.parent = "Outcome title" (title from Jira parent field)
   allFeatures.forEach(feature => {
     const featureKey = feature.key;
+    let parentKey = null;
 
-    // Check for direct parent link (Jira parent field)
+    // Try direct parentKey first
     if (feature.parentKey && OUTCOME_KEY_PATTERN.test(feature.parentKey)) {
-      const parentKey = feature.parentKey;
-      if (outcomes[parentKey]) {
-        outcomes[parentKey].children.push(featureKey);
-      }
+      parentKey = feature.parentKey;
+    }
+    // Fall back to title-based lookup (f.parent contains outcome title)
+    else if (feature.parent && titleMap[feature.parent]) {
+      parentKey = titleMap[feature.parent];
+    }
+
+    if (parentKey && outcomes[parentKey]) {
+      outcomes[parentKey].children.push(featureKey);
     }
   });
 
