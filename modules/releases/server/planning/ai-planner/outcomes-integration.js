@@ -13,28 +13,28 @@ const OUTCOME_KEY_PATTERN = /^RHAISTRAT-\d+$/;
  * Order matches Jira plan priority. Features' parent fields reference these.
  */
 const PRIORITY_OUTCOMES = [
-  'RHAISTRAT-2046', // 1: AIPCC Security Policy Compliance Directive
-  'RHAISTRAT-2129', // 2: Outcome: RHAIE Platform Stabilization
-  'RHAISTRAT-1513', // 3: MaaS — 3.5 Deliverables
-  'RHAISTRAT-2125', // 4: OCP 5 release and impact on RH AI
-  'RHAISTRAT-1979', // 5: Outcome: Production Resilience
-  'RHAISTRAT-1981', // 6: Outcome: Platform Experience for llm-d
-  'RHAISTRAT-1680', // 7: Parent Outcome: Unified Red Hat AI Inference
-  'RHAISTRAT-1312', // 8: Gen AI Studio
-  'RHAISTRAT-155',  // 9: Secure Agent Onboarding: Security-First Agent Engineering
-  'RHAISTRAT-1357', // 10: Tool Calling
-  'RHAISTRAT-1971', // 11: Tool Calling related
-  'RHAISTRAT-1354', // 12: From Tools to Swarms (MCP)
-  'RHAISTRAT-1355', // 13: MCP related
-  'RHAISTRAT-932',  // 14: MCP Connectivity
-  'RHAISTRAT-1498', // 15: Eval Hub
-  'RHAISTRAT-1339', // 16: AI Hub incl MCP
-  'RHAISTRAT-1066', // 17: Multitenancy
-  'RHAISTRAT-155',  // 18: BYOA — Bring Your Own Agent
-  'RHAISTRAT-2875', // 19: AI Grid MVP
-  'RHAISTRAT-1088', // 20: vLLM Omni
-  'RHAISTRAT-2604', // 21: (exact key)
-  'RHAISTRAT-188'   // 22: AutoRAG
+  { key: 'RHAISTRAT-2046', title: 'AIPCC Security Policy Compliance Directive' },
+  { key: 'RHAISTRAT-2129', title: 'Outcome: RHAIE Platform Stabilization, Quality, and Cohesion' },
+  { key: 'RHAISTRAT-1513', title: 'MaaS — 3.5 Deliverables' },
+  { key: 'RHAISTRAT-2125', title: 'OCP 5 release and impact on RH AI' },
+  { key: 'RHAISTRAT-1979', title: 'Outcome: Production Resilience' },
+  { key: 'RHAISTRAT-1981', title: 'Outcome: Platform Experience for llm-d' },
+  { key: 'RHAISTRAT-1680', title: 'Parent Outcome: Unified Red Hat AI Inference (RHAII) on Any Linux and Any Kubernetes' },
+  { key: 'RHAISTRAT-1312', title: 'Gen AI Studio' },
+  { key: 'RHAISTRAT-155', title: 'Agents run governed in OpenShell on Red Hat AI in production' },
+  { key: 'RHAISTRAT-1357', title: 'Tool Calling' },
+  { key: 'RHAISTRAT-1971', title: 'Tool Calling related' },
+  { key: 'RHAISTRAT-1354', title: 'From Tools to Swarms (MCP)' },
+  { key: 'RHAISTRAT-1355', title: 'MCP related' },
+  { key: 'RHAISTRAT-932', title: 'MCP Connectivity' },
+  { key: 'RHAISTRAT-1498', title: 'Eval Hub' },
+  { key: 'RHAISTRAT-1339', title: 'AI Hub incl MCP' },
+  { key: 'RHAISTRAT-1066', title: 'Multitenancy' },
+  { key: 'RHAISTRAT-155', title: 'Agents run governed in OpenShell on Red Hat AI in production' },
+  { key: 'RHAISTRAT-2875', title: 'AI Grid MVP' },
+  { key: 'RHAISTRAT-1088', title: 'vLLM Omni' },
+  { key: 'RHAISTRAT-2604', title: 'Documentation/Non-deliverables/Nice-to-have' },
+  { key: 'RHAISTRAT-188', title: '[OUTCOME] Enable AutoRAG' }
 ];
 
 /**
@@ -48,10 +48,10 @@ function extractOutcomesFromFeatures(allFeatures) {
   const outcomes = {};
 
   // Initialize all outcomes (1-22)
-  PRIORITY_OUTCOMES.forEach((outcomeKey, index) => {
-    outcomes[outcomeKey] = {
-      key: outcomeKey,
-      title: '', // Will be populated from features below
+  PRIORITY_OUTCOMES.forEach((outcome, index) => {
+    outcomes[outcome.key] = {
+      key: outcome.key,
+      title: outcome.title,
       outcomeNumber: index + 1,
       children: []
     };
