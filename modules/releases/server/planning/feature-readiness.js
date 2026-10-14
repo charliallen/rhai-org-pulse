@@ -650,6 +650,7 @@ async function buildCanonicalFeatures(options) {
       tier: merged.tier,
       bigRock: merged.bigRock,
       rockPriority: merged.rockPriority,
+      parentKey: merged.parentKey || '',
       targetVersions: merged.targetVersions,
       fixVersion: merged.fixVersion,
       fixVersions: fixVersions,
