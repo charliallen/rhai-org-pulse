@@ -403,6 +403,7 @@ function mergeFeatureData(key, jiraFeatures, aiReviewMap, candidateIndex, health
 
   var bigRock = (candidate && candidate.bigRock) || (health && health.bigRock) || null
   var rockPriority = (candidate && candidate.rockPriority) || null
+  var parentKey = (candidate && candidate.parentKey) || (jira && jira.parentKey) || null
 
   var riceScore
   if (jira && jira.riceScore != null) {
@@ -525,6 +526,7 @@ function mergeFeatureData(key, jiraFeatures, aiReviewMap, candidateIndex, health
     tier: tier,
     bigRock: bigRock,
     rockPriority: rockPriority,
+    parentKey: parentKey,
     targetVersions: targetVersions,
     fixVersion: fixVersion,
     fixVersions: fixVersions,
