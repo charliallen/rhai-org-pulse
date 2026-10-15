@@ -2900,10 +2900,13 @@ window.addEventListener('message', function(e){
       schedule(mapped);
       allData = mapped;
       dataSource = 'live';
-      // Re-apply outcome mappings after postMessage data load to prevent numbers from disappearing
-      if (outcomeData && outcomeData.outcomes && outcomeData.outcomes.length > 0) {
-        mapFeaturesToOutcomes();
+      // Ensure outcomes are loaded before applying outcome mappings
+      if (!outcomeData || !outcomeData.outcomes || outcomeData.outcomes.length === 0) {
+        // Fetch outcomes synchronously if not yet available
+        await fetchOutcomes();
       }
+      // Apply outcome mappings to populate OutcomeNumber field for sorting
+      mapFeaturesToOutcomes();
     } catch (err) {
       console.error('AI Planner: could not schedule live data, keeping previous rows', err);
     }
@@ -3316,7 +3319,12 @@ function run(){
   rows=rows.slice().sort((a,b)=>{
     let va=a[sortCol],vb=b[sortCol];
     if(sortCol==='Score'||sortCol==='Rank'){va=+va;vb=+vb;}
-    else if(sortCol==='OutcomeNumber'){va=+va||Infinity;vb=+vb||Infinity;}
+    else if(sortCol==='OutcomeNumber'){
+      const numA = parseInt(va) || Infinity;
+      const numB = parseInt(vb) || Infinity;
+      va = numA;
+      vb = numB;
+    }
     else if(sortCol==='FPDoR'){
       const vaStr = typeof va === 'string' ? va : (va?.passedCount + '/' + va?.totalCount || '0');
       const vbStr = typeof vb === 'string' ? vb : (vb?.passedCount + '/' + vb?.totalCount || '0');
