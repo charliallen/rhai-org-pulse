@@ -3295,7 +3295,7 @@ function run(){
     if(assign&&(r['Assignee']||'').trim()!==assign) return false;
     if(pri&&esc(r['Priority'])!==pri) return false;
     if(fail&&!(r['Failed FPDoR Items']||'').includes(fail)) return false;
-    if(bigRockOnly&&!r._isBigRock) return false;
+    if(bigRockOnly&&!r['Outcome']) return false;
     if(window._selectedBR&&!(r._bigRocks&&r._bigRocks.includes(window._selectedBR))) return false;
     return true;
   });
