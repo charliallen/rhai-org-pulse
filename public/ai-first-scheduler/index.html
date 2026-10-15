@@ -520,6 +520,7 @@ tr:hover td{background:#f8fafc}
         <th>TITLE</th>
         <th>OUTCOME</th>
         <th title="Target Version — the planned release milestone for this feature">TARGET VERSION</th>
+        <th title="Fix Version — the resolved/fixed version in Jira">FIX VERSION</th>
         <th>COMPONENTS</th>
         <th><span class="tip">SIZE ⓘ<span class="tip-box">Feature size from Arjay's capacity model:<br>S=3pts (1 comp) · M=5pts (1 comp) · L=8pts (2 comps) · XL=13pts (3+ comps)<br>Ceiling: 140pts / release (90% CI, 41 releases)</span></span></th>
         <th>TEAM</th>
@@ -3569,6 +3570,7 @@ function renderTbl(rows){
       <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis" title="${esc(r['Title'])}">${hasCrossTeamDep?'<span style="font-size:9px;font-weight:700;color:#7c3aed;background:#f3e8ff;border:1px solid #c4b5fd;border-radius:3px;padding:1px 4px;margin-right:3px;white-space:nowrap" title="Cross-team dependency flagged — external teams involved; slippage risk outside RHOAI control">⚑ deps</span>':''}${esc(r['Title'])}<div class="compact-key-link"><a href="https://redhat.atlassian.net/browse/${esc(r['Key'])}" target="_blank" style="color:#94a3b8;text-decoration:none">${esc(r['Key'])}</a></div></td>
       <td style="max-width:140px;white-space:normal;line-height:1.4">${r._isBigRock?'<span class="br-badge">🪨 BR</span>':''}${brGapHtml}${esc(r['Outcome'])?`<a href="https://redhat.atlassian.net/browse/${esc(r['Outcome'])}" target="_blank" style="color:#1565c0;text-decoration:none;font-weight:600" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">${esc(r['Outcome'])}</a>`:'<span style="color:#bbb">—</span>'}</td>
       <td style="white-space:nowrap;font-size:11px;color:#555">${(esc(r['Target Versions'])||'').trim()||'—'}</td>
+      <td style="white-space:nowrap;font-size:11px;color:#555">${(esc(r['Fix Version'])||'').trim()||'—'}</td>
       <td title="${esc(r['Components'])}" style="max-width:160px;color:#444">${compsStr||'—'}${r._complexityWarn?`<div style="font-size:9px;color:#e65100;font-weight:700;margin-top:1px" title="${esc(String(r._comps.length))} components — cross-team delivery risk (spec: 6+ = complexity flag)">⚠ ${esc(String(r._comps.length))} comps</div>`:''}</td>
       <td style="white-space:nowrap;text-align:center"><span style="font-size:11px;font-weight:700;padding:2px 6px;border-radius:4px;background:${r._featureSize==='XL'?'#4a1a4a':r._featureSize==='L'?'#1a3a4a':r._featureSize==='M'?'#1a3a1a':'#2a2a1a'};color:${r._featureSize==='XL'?'#e040fb':r._featureSize==='L'?'#40c4ff':r._featureSize==='M'?'#69f0ae':'#ffee58'}">${r._featureSize}</span><span style="font-size:9px;color:#888;margin-left:3px">${r._featurePts}pt</span></td>
       <td style="font-size:11px;color:#555;white-space:nowrap">${esc(r['Team'])||'—'}</td>
