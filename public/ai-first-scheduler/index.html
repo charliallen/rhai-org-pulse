@@ -458,15 +458,64 @@ tr:hover td{background:#f8fafc}
     </div>
   </div>
   <div id="mix-panel" class="mix-panel" style="display:none"></div>
-  <div id="capacity-panel" style="margin-top:10px;padding:10px 16px;background:#0d1a2a;border-radius:8px;border:1px solid #1e3a5f;display:none">
-    <div style="font-size:11px;font-weight:700;color:#7ec8e3;margin-bottom:6px;letter-spacing:.05em">CAPACITY LOAD (90% CI · 41 releases · ceiling 140 pts)</div>
-    <div style="display:flex;align-items:center;gap:10px">
-      <div id="cap-bar-wrap" style="flex:1;height:14px;background:#1e3a5f;border-radius:7px;overflow:hidden">
-        <div id="cap-bar-fill" style="height:100%;border-radius:7px;transition:width .4s"></div>
-      </div>
-      <div id="cap-label" style="font-size:12px;color:#fff;font-weight:700;white-space:nowrap"></div>
+  <div id="capacity-panel" style="margin-top:10px;padding:12px 14px;background:#f8f9fa;border-radius:8px;border:1px solid #e0e0e0;display:none">
+    <div style="font-size:12px;font-weight:700;color:#212121;margin-bottom:12px;display:flex;gap:8px">
+      📊 CAPACITY ALLOCATION (40/40/20 Rule)
+      <select id="cap-view-filter" onchange="updateCapacityDisplay()" style="font-size:11px;padding:2px 6px;border:1px solid #ccc;border-radius:4px;font-weight:500">
+        <option value="">All Teams & Components</option>
+        <optgroup label="— Teams —"></optgroup>
+        <option value="team:All">Organization Total</option>
+        <optgroup id="cap-team-options" label=""></optgroup>
+        <optgroup label="— Components —"></optgroup>
+        <optgroup id="cap-comp-options" label=""></optgroup>
+      </select>
     </div>
-    <div id="cap-detail" style="font-size:10px;color:#7ec8e3;margin-top:5px"></div>
+
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+      <!-- Priority Outcomes (Locked) -->
+      <div style="background:#e3f2fd;border:1px solid #90caf9;border-radius:6px;padding:10px">
+        <div style="font-size:9px;font-weight:700;color:#1565c0;text-transform:uppercase;margin-bottom:4px">Priority Outcomes (20%)</div>
+        <div id="cap-locked-count" style="font-size:18px;font-weight:700;color:#0d47a1">0</div>
+        <div id="cap-locked-label" style="font-size:9px;color:#555">features locked</div>
+        <div id="cap-locked-detail" style="font-size:8px;color:#888;margin-top:3px">Committed by exec</div>
+      </div>
+
+      <!-- Flexible Features -->
+      <div style="background:#f1f8e9;border:1px solid #aed581;border-radius:6px;padding:10px">
+        <div style="font-size:9px;font-weight:700;color:#558b2f;text-transform:uppercase;margin-bottom:4px">Flexible (20%)</div>
+        <div id="cap-flexible-count" style="font-size:18px;font-weight:700;color:#2e7d32">0</div>
+        <div id="cap-flexible-label" style="font-size:9px;color:#555">stretch features</div>
+        <div id="cap-flexible-detail" style="font-size:8px;color:#888;margin-top:3px">Added as capacity allows</div>
+      </div>
+
+      <!-- Bug Reserve -->
+      <div style="background:#fff3e0;border:1px solid #ffb74d;border-radius:6px;padding:10px">
+        <div style="font-size:9px;font-weight:700;color:#e65100;text-transform:uppercase;margin-bottom:4px">Bugs & QA (40%)</div>
+        <div id="cap-bug-count" style="font-size:18px;font-weight:700;color:#d84315">0</div>
+        <div id="cap-bug-label" style="font-size:9px;color:#555">units reserved</div>
+        <div id="cap-bug-detail" style="font-size:8px;color:#888;margin-top:3px">Non-negotiable</div>
+      </div>
+
+      <!-- CVE Reserve -->
+      <div style="background:#fce4ec;border:1px solid #f06292;border-radius:6px;padding:10px">
+        <div style="font-size:9px;font-weight:700;color:#880e4f;text-transform:uppercase;margin-bottom:4px">CVE/Security (20%)</div>
+        <div id="cap-cve-count" style="font-size:18px;font-weight:700;color:#c2185b">0</div>
+        <div id="cap-cve-label" style="font-size:9px;color:#555">units reserved</div>
+        <div id="cap-cve-detail" style="font-size:8px;color:#888;margin-top:3px">Spikes unpredictably</div>
+      </div>
+    </div>
+
+    <!-- Capacity Utilization -->
+    <div style="margin-top:12px;padding:10px;background:#fff;border-radius:6px;border:1px solid #e0e0e0">
+      <div style="font-size:10px;font-weight:700;color:#212121;margin-bottom:6px">TOTAL CAPACITY UTILIZATION</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="flex:1;height:20px;background:#f0f0f0;border-radius:4px;overflow:hidden">
+          <div id="cap-utilization-bar" style="height:100%;background:linear-gradient(90deg,#2e7d32 0%,#f57f17 70%,#d32f2f 100%);width:0%;transition:width 0.4s"></div>
+        </div>
+        <div id="cap-utilization-text" style="font-size:11px;font-weight:700;color:#212121;white-space:nowrap">0/0 (0%)</div>
+      </div>
+      <div id="cap-status" style="font-size:9px;color:#555;margin-top:4px">Capacity OK ✅</div>
+    </div>
   </div>
   <div id="cve-panel" style="margin-top:10px;padding:10px 16px;background:#fff3e0;border-radius:8px;border:1px solid #ffb74d;display:none">
     <div style="font-size:11px;font-weight:700;color:#e65100;margin-bottom:6px;letter-spacing:.05em">🛡 CVE &amp; QUALITY CAPACITY RESERVE</div>
@@ -3174,6 +3223,10 @@ function addToPlan(){
 function toggleScoreCol(){
   const show = document.getElementById('f-show-score').checked;
   document.querySelectorAll('.score-col').forEach(el => el.style.display = show ? '' : 'none');
+
+  // Update capacity display
+  populateCapacityFilters();
+  updateCapacityDisplay();
 }
 
 let _roadmapVisible = false;
@@ -3580,6 +3633,106 @@ function renderTbl(rows){
       <td style="font-size:11px;color:#555;white-space:nowrap">${esc(r['Team'])||'—'}</td>
     </tr>`;
   }).join('');
+}
+
+function updateCapacityDisplay(){
+  // Show the capacity panel
+  const panel = document.getElementById('capacity-panel');
+  if (panel) panel.style.display = 'block';
+
+  const filterVal = document.getElementById('cap-view-filter')?.value || '';
+  let relevantData = allData;
+  let capacity = 60; // default org capacity (can vary by scope)
+
+  // Filter by team or component if selected
+  if (filterVal.startsWith('team:')) {
+    const teamName = filterVal.substring(5);
+    if (teamName !== 'All') {
+      relevantData = allData.filter(f => (f['Team'] || '').includes(teamName));
+      // Look up team capacity from TEAM_CAP
+      capacity = (TEAM_CAP[teamName]?.EA1 || 0) + (TEAM_CAP[teamName]?.EA2 || 0) + (TEAM_CAP[teamName]?.GA || 0);
+      capacity = Math.round(capacity * 15); // Scale factor (roughly 15 features per unit)
+    } else {
+      // Organization total: sum all team capacities
+      capacity = Object.values(TEAM_CAP).reduce((sum, t) => sum + (t.EA1 || 0) + (t.EA2 || 0) + (t.GA || 0), 0);
+      capacity = Math.round(capacity * 15);
+    }
+  } else if (filterVal.startsWith('comp:')) {
+    const compName = filterVal.substring(5);
+    relevantData = allData.filter(f => (f['Components'] || '').includes(compName));
+    capacity = 60; // component capacity (from component-team-capacity-v2)
+  }
+
+  // Calculate 40/40/20 allocation
+  const featureCapacity = capacity * 0.40; // 40% for features
+  const bugCapacity = capacity * 0.40;    // 40% for bugs
+  const cveCapacity = capacity * 0.20;    // 20% for CVE/security
+
+  // Of feature capacity: 50% locked (priority outcomes), 50% flexible
+  const lockedCapacity = featureCapacity * 0.50;
+  const flexibleCapacity = featureCapacity * 0.50;
+
+  // Count features by outcome status
+  const featuresInPlan = relevantData.filter(f => f['Target Versions'] || f['Fix Version']).length;
+  const featuresInOutcomes = relevantData.filter(f => f['Outcome']).length;
+
+  // Estimate: if feature is in priority outcome, it's "locked"
+  const lockedFeatures = relevantData.filter(f => f['Outcome'] && (f['OutcomeNumber'] && parseInt(f['OutcomeNumber']) <= 12)).length;
+  const flexibleFeatures = featuresInPlan - lockedFeatures;
+
+  // Update UI
+  document.getElementById('cap-locked-count').textContent = Math.round(lockedCapacity);
+  document.getElementById('cap-locked-label').textContent = `/ ${Math.round(lockedCapacity)} locked`;
+  document.getElementById('cap-locked-detail').textContent = `${lockedFeatures} features`;
+
+  document.getElementById('cap-flexible-count').textContent = Math.round(flexibleCapacity);
+  document.getElementById('cap-flexible-label').textContent = `/ ${Math.round(flexibleCapacity)} stretch`;
+  document.getElementById('cap-flexible-detail').textContent = `${flexibleFeatures} features`;
+
+  document.getElementById('cap-bug-count').textContent = Math.round(bugCapacity);
+  document.getElementById('cap-bug-label').textContent = 'units reserved';
+  document.getElementById('cap-bug-detail').textContent = '40% of total';
+
+  document.getElementById('cap-cve-count').textContent = Math.round(cveCapacity);
+  document.getElementById('cap-cve-label').textContent = 'units reserved';
+  document.getElementById('cap-cve-detail').textContent = '20% of total';
+
+  // Utilization bar
+  const totalUsed = lockedFeatures + flexibleFeatures;
+  const utilizationPercent = (totalUsed / capacity) * 100;
+  document.getElementById('cap-utilization-bar').style.width = Math.min(utilizationPercent, 100) + '%';
+  document.getElementById('cap-utilization-text').textContent = `${totalUsed}/${Math.round(capacity)} (${Math.round(utilizationPercent)}%)`;
+
+  // Status
+  const status = utilizationPercent > 100 ? 'Over capacity ⚠️' : utilizationPercent > 85 ? 'Near capacity 🟡' : 'Capacity OK ✅';
+  document.getElementById('cap-status').textContent = status;
+}
+
+function populateCapacityFilters(){
+  // Populate team options
+  const teamOptions = document.getElementById('cap-team-options');
+  const uniqueTeams = [...new Set(allData.map(f => f['Team']))].filter(Boolean).sort();
+  uniqueTeams.forEach(team => {
+    const opt = document.createElement('option');
+    opt.value = 'team:' + team;
+    opt.textContent = team;
+    teamOptions.appendChild(opt);
+  });
+
+  // Populate component options
+  const compOptions = document.getElementById('cap-comp-options');
+  const uniqueComps = new Set();
+  allData.forEach(f => {
+    (f['Components'] || '').split(';').forEach(c => {
+      if (c.trim()) uniqueComps.add(c.trim());
+    });
+  });
+  Array.from(uniqueComps).sort().forEach(comp => {
+    const opt = document.createElement('option');
+    opt.value = 'comp:' + comp;
+    opt.textContent = comp;
+    compOptions.appendChild(opt);
+  });
 }
 
 function renderAppendix(data){
