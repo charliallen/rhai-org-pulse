@@ -3674,11 +3674,10 @@ function updateCapacityDisplay(){
 
   // Count features by outcome status
   const featuresInPlan = relevantData.filter(f => f['Target Versions'] || f['Fix Version']).length;
-  const featuresInOutcomes = relevantData.filter(f => f['Outcome']).length;
 
   // Estimate: if feature is in priority outcome, it's "locked"
   const lockedFeatures = relevantData.filter(f => f['Outcome'] && (f['OutcomeNumber'] && parseInt(f['OutcomeNumber']) <= 12)).length;
-  const flexibleFeatures = featuresInPlan - lockedFeatures;
+  const flexibleFeatures = Math.max(0, featuresInPlan - lockedFeatures);
 
   // Update UI
   document.getElementById('cap-locked-count').textContent = Math.round(lockedCapacity);
@@ -3699,7 +3698,7 @@ function updateCapacityDisplay(){
 
   // Utilization bar
   const totalUsed = lockedFeatures + flexibleFeatures;
-  const utilizationPercent = (totalUsed / capacity) * 100;
+  const utilizationPercent = capacity > 0 ? (totalUsed / capacity) * 100 : 0;
   document.getElementById('cap-utilization-bar').style.width = Math.min(utilizationPercent, 100) + '%';
   document.getElementById('cap-utilization-text').textContent = `${totalUsed}/${Math.round(capacity)} (${Math.round(utilizationPercent)}%)`;
 
@@ -3709,8 +3708,8 @@ function updateCapacityDisplay(){
 }
 
 function populateCapacityFilters(){
-  // Populate team options
   const teamOptions = document.getElementById('cap-team-options');
+  teamOptions.innerHTML = '';
   const uniqueTeams = [...new Set(allData.map(f => f['Team']))].filter(Boolean).sort();
   uniqueTeams.forEach(team => {
     const opt = document.createElement('option');
@@ -3719,8 +3718,8 @@ function populateCapacityFilters(){
     teamOptions.appendChild(opt);
   });
 
-  // Populate component options
   const compOptions = document.getElementById('cap-comp-options');
+  compOptions.innerHTML = '';
   const uniqueComps = new Set();
   allData.forEach(f => {
     (f['Components'] || '').split(';').forEach(c => {
