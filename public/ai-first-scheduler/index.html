@@ -4252,9 +4252,8 @@ function mapFeaturesToOutcomes() {
         const outcomeKey = outcomeFullName.split(' ')[0]; // Extract just the key
         feature['Outcome'] = outcomeKey; // Store just the key
         feature['OutcomeNumber'] = outcomeKeyToNumber[outcomeKey] || '—';
-      } else {
-        feature['OutcomeNumber'] = '—';
       }
+      // Don't overwrite OutcomeNumber if already set from API — the API provides the authoritative mapping
     });
   } catch (err) {
     console.error('Error mapping features to outcomes:', err);
