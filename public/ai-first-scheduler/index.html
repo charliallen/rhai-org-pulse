@@ -3425,8 +3425,8 @@ function updateLandingCapacity(filteredRows){
 
   // Calculate filter label
   const rel = v('f-rel');
-  const comp = msGet('f-comp');
-  const team = msGet('f-team');
+  const comp = msGet('f-comp') || [];
+  const team = msGet('f-team') || [];
   const place = v('f-place');
   let filterLabel = '';
   if(rel) filterLabel += `Release: ${rel} · `;
@@ -3441,7 +3441,7 @@ function updateLandingCapacity(filteredRows){
   document.getElementById('capacity-flexible').textContent = flexible.length;
 
   const lockedBar = panel.querySelector('#capacity-locked-bar div');
-  lockedBar.style.width = lockedPct + '%';
+  if(lockedBar) lockedBar.style.width = lockedPct + '%';
   document.getElementById('capacity-locked-status').textContent = lockedPct + '%';
 
   // Overall capacity: sum locked + flexible, target 500 for 40%+20%=60%
@@ -3450,7 +3450,7 @@ function updateLandingCapacity(filteredRows){
   const totalPct = Math.min(Math.round(totalUsed / totalCapacityTarget * 100), 100);
 
   const overallBar = panel.querySelector('#overall-capacity-bar');
-  overallBar.style.width = totalPct + '%';
+  if(overallBar) overallBar.style.width = totalPct + '%';
   document.getElementById('overall-capacity-text').textContent = lockedPct + '% locked';
 
   panel.style.display = '';
