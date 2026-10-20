@@ -3417,7 +3417,7 @@ function updateLandingCapacity(filteredRows){
 
   const inPlan = filteredRows.filter(r => r._place !== 'No');
   const locked = inPlan.filter(r => r._place === 'EA1' || r._place === 'EA2');
-  const flexible = inPlan.filter(r => r._place === 'EA1' || r._place === 'EA2' || r._place === 'GA');
+  const flexible = inPlan.filter(r => r._place === 'GA');
 
   // 20% target = ~250 for full 41-release ceiling
   const targetLocked = 250;
@@ -3446,7 +3446,7 @@ function updateLandingCapacity(filteredRows){
 
   // Overall capacity: sum locked + flexible, target 500 for 40%+20%=60%
   const totalCapacityTarget = 500;
-  const totalUsed = flexible.length;
+  const totalUsed = locked.length + flexible.length;
   const totalPct = Math.min(Math.round(totalUsed / totalCapacityTarget * 100), 100);
 
   const overallBar = panel.querySelector('#overall-capacity-bar');
