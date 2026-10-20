@@ -4219,9 +4219,8 @@ async function fetchOutcomes() {
     const data = await res.json();
     if (data && data.outcomes && Array.isArray(data.outcomes)) {
       outcomeData = data;
-      if (data.featureOutcomeMap && typeof data.featureOutcomeMap === 'object') {
-        mapFeaturesToOutcomes();
-      }
+      // Don't call mapFeaturesToOutcomes() here — OutcomeNumber already comes from /ai-planner API
+      // which has the authoritative outcome mapping. The featureOutcomeMap is for the dropdown only.
       if (data.outcomes.length > 0) {
         populateOutcomeDropdown();
       }
