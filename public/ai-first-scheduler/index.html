@@ -427,6 +427,81 @@ tr:hover td{background:#f8fafc}
 
   <!-- TAB 2: Feature Scheduling (default) -->
   <div class="tab-pane active" id="tab-features">
+
+  <!-- LANDING PAGE: Capacity Display + 20% Target Indicator -->
+  <div id="landing-capacity-panel" style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:16px 20px;margin-bottom:16px;display:none">
+    <div style="font-size:13px;font-weight:700;color:#166534;margin-bottom:12px;display:flex;align-items:center;gap:8px">
+      📊 Capacity Snapshot
+      <span id="filter-label-capacity" style="font-size:11px;font-weight:400;color:#666;margin-left:auto"></span>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
+      <!-- Priority Outcomes (Locked) -->
+      <div style="background:#fff;border:1px solid #86efac;border-radius:8px;padding:12px">
+        <div style="font-size:10px;color:#666;font-weight:600;margin-bottom:6px;text-transform:uppercase">🎯 Priority Outcomes (20%)</div>
+        <div style="display:flex;align-items:baseline;gap:4px">
+          <span id="capacity-locked" style="font-size:24px;font-weight:800;color:#166534">0</span>
+          <span style="font-size:11px;color:#999">/ 250 target</span>
+        </div>
+        <div id="capacity-locked-bar" style="height:4px;background:#dcfce7;border-radius:2px;margin-top:8px;overflow:hidden">
+          <div style="height:100%;background:#22c55e;width:0%;transition:width .3s"></div>
+        </div>
+        <div id="capacity-locked-status" style="font-size:10px;color:#166534;margin-top:4px;font-weight:600">0%</div>
+      </div>
+
+      <!-- Flexible Features -->
+      <div style="background:#fff;border:1px solid #bfdbfe;border-radius:8px;padding:12px">
+        <div style="font-size:10px;color:#666;font-weight:600;margin-bottom:6px;text-transform:uppercase">🚀 Flexible (20%)</div>
+        <div style="display:flex;align-items:baseline;gap:4px">
+          <span id="capacity-flexible" style="font-size:24px;font-weight:800;color:#1565c0">0</span>
+          <span style="font-size:11px;color:#999">available</span>
+        </div>
+        <div style="height:4px;background:#dbeafe;border-radius:2px;margin-top:8px">
+          <div style="height:100%;background:#3b82f6;width:0%;transition:width .3s"></div>
+        </div>
+        <div style="font-size:10px;color:#1565c0;margin-top:4px;font-weight:600">ready</div>
+      </div>
+
+      <!-- Bugs & QA (Reserve) -->
+      <div style="background:#fff;border:1px solid #fed7aa;border-radius:8px;padding:12px">
+        <div style="font-size:10px;color:#666;font-weight:600;margin-bottom:6px;text-transform:uppercase">🐛 Bugs & QA (40%)</div>
+        <div style="display:flex;align-items:baseline;gap:4px">
+          <span style="font-size:24px;font-weight:800;color:#ea580c">40%</span>
+          <span style="font-size:11px;color:#999">reserved</span>
+        </div>
+        <div style="height:4px;background:#fed7aa;border-radius:2px;margin-top:8px">
+          <div style="height:100%;background:#f97316;width:100%;transition:width .3s"></div>
+        </div>
+        <div style="font-size:10px;color:#ea580c;margin-top:4px;font-weight:600">protected</div>
+      </div>
+
+      <!-- CVE/Security (Reserve) -->
+      <div style="background:#fff;border:1px solid #fecaca;border-radius:8px;padding:12px">
+        <div style="font-size:10px;color:#666;font-weight:600;margin-bottom:6px;text-transform:uppercase">🛡 CVE/Security (20%)</div>
+        <div style="display:flex;align-items:baseline;gap:4px">
+          <span style="font-size:24px;font-weight:800;color:#dc2626">20%</span>
+          <span style="font-size:11px;color:#999">reserved</span>
+        </div>
+        <div style="height:4px;background:#fecaca;border-radius:2px;margin-top:8px">
+          <div style="height:100%;background:#ef4444;width:100%;transition:width .3s"></div>
+        </div>
+        <div style="font-size:10px;color:#dc2626;margin-top:4px;font-weight:600">spiky load</div>
+      </div>
+    </div>
+
+    <!-- Overall Status -->
+    <div style="margin-top:14px;padding:10px 12px;background:#f9fafb;border-radius:6px;display:flex;align-items:center;gap:12px;font-size:11px">
+      <span style="color:#666">Release Capacity Status:</span>
+      <div style="display:flex;align-items:center;gap:6px;flex:1">
+        <div style="height:6px;flex:1;background:#e5e7eb;border-radius:3px;overflow:hidden">
+          <div id="overall-capacity-bar" style="height:100%;background:#22c55e;width:15%;transition:width .3s"></div>
+        </div>
+        <span id="overall-capacity-text" style="font-weight:600;color:#166534;min-width:60px">0% locked</span>
+      </div>
+      <span id="capacity-target-status" style="color:#999">Target: 20% by Nov 11</span>
+    </div>
+  </div>
+
   <div class="filters">
     <select id="f-read" onchange="run()"><option value="">All Readiness</option><option value="committed">Ready</option><option value="not-ready">Not Ready</option></select>
     <select id="f-place" onchange="run()" title="Filter by release milestone. 'EA1+EA2 committed' shows all features locked for the freeze window."><option value="">All Placements</option><option value="EA1+EA2">EA1 + EA2 (committed)</option><option>EA1</option><option>EA2</option><option>GA</option><option value="No" title="Confidence too low or incomplete FPDoR — not blocked permanently">Not planned for 3.6</option></select>
@@ -3336,6 +3411,51 @@ function showRoadmapDrilldown(e){
   pop.style.top=(rect.bottom+4)+'px';
 }
 
+function updateLandingCapacity(filteredRows){
+  const panel = document.getElementById('landing-capacity-panel');
+  if(!panel) return;
+
+  const inPlan = filteredRows.filter(r => r._place !== 'No');
+  const locked = inPlan.filter(r => r._place === 'EA1' || r._place === 'EA2');
+  const flexible = inPlan.filter(r => r._place === 'EA1' || r._place === 'EA2' || r._place === 'GA');
+
+  // 20% target = ~250 for full 41-release ceiling
+  const targetLocked = 250;
+  const lockedPct = Math.min(Math.round(locked.length / targetLocked * 100), 100);
+
+  // Calculate filter label
+  const rel = v('f-rel');
+  const comp = msGet('f-comp');
+  const team = msGet('f-team');
+  const place = v('f-place');
+  let filterLabel = '';
+  if(rel) filterLabel += `Release: ${rel} · `;
+  if(place) filterLabel += `Placement: ${place} · `;
+  if(comp.length) filterLabel += `Components: ${comp.length} · `;
+  if(team.length) filterLabel += `Teams: ${team.length}`;
+  if(filterLabel.endsWith(' · ')) filterLabel = filterLabel.slice(0, -3);
+  if(!filterLabel) filterLabel = 'All releases';
+
+  document.getElementById('filter-label-capacity').textContent = filterLabel;
+  document.getElementById('capacity-locked').textContent = locked.length;
+  document.getElementById('capacity-flexible').textContent = flexible.length;
+
+  const lockedBar = panel.querySelector('#capacity-locked-bar div');
+  lockedBar.style.width = lockedPct + '%';
+  document.getElementById('capacity-locked-status').textContent = lockedPct + '%';
+
+  // Overall capacity: sum locked + flexible, target 500 for 40%+20%=60%
+  const totalCapacityTarget = 500;
+  const totalUsed = flexible.length;
+  const totalPct = Math.min(Math.round(totalUsed / totalCapacityTarget * 100), 100);
+
+  const overallBar = panel.querySelector('#overall-capacity-bar');
+  overallBar.style.width = totalPct + '%';
+  document.getElementById('overall-capacity-text').textContent = lockedPct + '% locked';
+
+  panel.style.display = '';
+}
+
 function run(){
   const rel   = v('f-rel'), read  = v('f-read'), place = v('f-place');
   const out   = v('f-outcome');
@@ -3418,7 +3538,7 @@ function run(){
     if(!r._bigRocks) return;
     r._bigRocks.forEach(name=>{if(r._place==='No') window._brGapMap[name]=(window._brGapMap[name]||0)+1;});
   });
-  renderTbl(rows); renderPmBanner(rows); renderCards(allData); renderCapacityMix(allData); renderBigRocks(allData); renderAppendix(allData);
+  renderTbl(rows); renderPmBanner(rows); renderCards(allData); updateLandingCapacity(rows); renderCapacityMix(allData); renderBigRocks(allData); renderAppendix(allData);
   if(document.getElementById('tab-roadmap')?.classList.contains('active')) renderRoadmapTimeline(allData);
   if(document.getElementById('tab-executive')?.classList.contains('active')) renderExecView();
 }
