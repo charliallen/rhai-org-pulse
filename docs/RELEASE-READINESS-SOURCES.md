@@ -223,7 +223,7 @@ The Product Pages client performs these calls:
 | Displayed value | Source and fallback |
 | --- | --- |
 | Code Freeze | Product Pages schedule; local release-variable YAML if Product Pages has no date. |
-| Build Received (`phases[].build_ready_date`) | Optional `ACTUAL_BUILD_DATES` override (empty by default) → matching Product Pages release/phase task → Jira build Epic completion date; if there is no build Epic date, completed test Epic date; otherwise `null`. |
+| RC1/RC2 Build Received (`phases[].build_ready_date`) | Optional `ACTUAL_BUILD_DATES` override (empty by default) → matching Product Pages release/RC task → Jira build Epic completion date; if there is no build Epic date, completed test Epic date; otherwise `null`. |
 | Test Started | First Jira changelog transition to `In Progress` on the test-phase Epic. |
 | Test Finished | Jira test-phase Epic `resolutiondate`; `updated` only if the Epic is Done and has no resolution date. |
 | TFAs Passed | Latest TFA task `updated` date once every task is In Progress or Done. |
