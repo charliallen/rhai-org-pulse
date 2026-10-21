@@ -3531,16 +3531,20 @@ function run(){
     r._noTier=1;                                           // missing some analysis fields, PM can fix
   });
 
-  const PLACE_ORDER={'EA1':0,'EA2':1,'GA':2,'No':3};
-  rows.sort((a,b)=>{
-    const pg=(PLACE_ORDER[a._place]??3)-(PLACE_ORDER[b._place]??3);
-    if(pg!==0) return pg;
-    if(a._place==='No'&&b._place==='No'){
-      const tg=(a._noTier||1)-(b._noTier||1);
-      if(tg!==0) return tg;
-    }
-    return (b._conf||0)-(a._conf||0);
-  });
+  // Only apply placement-based grouping if NOT sorting by OutcomeNumber
+  // When sorting by OutcomeNumber, preserve that sort order
+  if(sortCol !== 'OutcomeNumber'){
+    const PLACE_ORDER={'EA1':0,'EA2':1,'GA':2,'No':3};
+    rows.sort((a,b)=>{
+      const pg=(PLACE_ORDER[a._place]??3)-(PLACE_ORDER[b._place]??3);
+      if(pg!==0) return pg;
+      if(a._place==='No'&&b._place==='No'){
+        const tg=(a._noTier||1)-(b._noTier||1);
+        if(tg!==0) return tg;
+      }
+      return (b._conf||0)-(a._conf||0);
+    });
+  }
 
   window._brGapMap={};
   BIG_ROCKS.forEach(br=>{window._brGapMap[br.name]=0;});
