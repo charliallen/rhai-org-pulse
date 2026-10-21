@@ -3543,7 +3543,13 @@ function run(){
   if(document.getElementById('tab-executive')?.classList.contains('active')) renderExecView();
 }
 function v(id){return document.getElementById(id).value;}
-function sort(col){sortCol===col?sortAsc=!sortAsc:(sortCol=col,sortAsc=true);run();}
+function sort(col){
+  sortCol===col?sortAsc=!sortAsc:(sortCol=col,sortAsc=true);
+  run();
+  // Note: Sorting by OutcomeNumber is always available (1-22 for linked outcomes, "—" for unlinked).
+  // It works whether or not "Outcomes only" filter is active. If most features show "—",
+  // sorting may appear to do nothing because they all have the same value.
+}
 
 function renderCards(rows){
   const c={EA1:0,EA2:0,GA:0,No:0};
