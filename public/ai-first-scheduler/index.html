@@ -4597,10 +4597,11 @@ function toggleSummary(){
 // ── FETCH TIMELINE MILESTONES FROM PRODUCT PAGES ─────────────────────────────────
 async function fetchTimelineMilestones(){
   try {
-    const resp=await fetch('/api/modules/releases/planning/ai-planner/timeline-milestones');
+    const resp=await fetch('/api/modules/releases/planning/ai-planner/timeline-milestones',{signal:AbortSignal.timeout(8000)});
     if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const data=await resp.json();
-    return data.milestones || [];
+    if(data.source!=='product-pages' || !Array.isArray(data.milestones) || !data.milestones.length) return null;
+    return data.milestones;
   } catch(err) {
     console.warn('Failed to fetch timeline from Product Pages, using fallback dates:', err.message);
     // Return empty to fall back to hardcoded in renderScheduleStrip

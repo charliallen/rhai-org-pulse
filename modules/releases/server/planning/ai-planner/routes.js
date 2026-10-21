@@ -279,15 +279,17 @@ module.exports = function registerAIPlannerRoutes(router, context) {
           ? { Accept: 'application/json', Authorization: `Bearer ${token}` }
           : { Accept: 'application/json' };
 
-        const schedule36 = await fetchScheduleTasks('rhoai-3.6', baseUrl, headers);
-        const schedule37 = await fetchScheduleTasks('rhoai-3.7', baseUrl, headers);
+        const [schedule36, schedule37] = await Promise.all([
+          fetchScheduleTasks('rhoai-3.6', baseUrl, headers),
+          fetchScheduleTasks('rhoai-3.7', baseUrl, headers)
+        ]);
 
         if (schedule36 && schedule36.length > 0) {
           const gaDate = schedule36.find(t => t.name && t.name.toLowerCase().includes('ga release'));
           const codeFreeze = schedule36.find(t => t.name && t.name.toLowerCase().includes('code freeze'));
 
-          if (gaDate) milestones.push({ lbl: '3.6 GA Release', date: gaDate.dueDate, badge: 'Informational launch', badgeColor: '#2e7d32' });
-          if (codeFreeze) milestones.push({ lbl: 'RHOAI 3.6 GA Code Freeze', date: codeFreeze.dueDate });
+          if (gaDate) milestones.push({ lbl: '3.6 GA Release', date: gaDate.date_finish, badge: 'Informational launch', badgeColor: '#2e7d32' });
+          if (codeFreeze) milestones.push({ lbl: 'RHOAI 3.6 GA Code Freeze', date: codeFreeze.date_finish });
         }
 
         if (schedule37 && schedule37.length > 0) {
@@ -296,10 +298,10 @@ module.exports = function registerAIPlannerRoutes(router, context) {
           const eaRelease = schedule37.find(t => t.name && t.name.toLowerCase().includes('ea release'));
           const gaRelease = schedule37.find(t => t.name && t.name.toLowerCase().includes('ga release'));
 
-          if (planning) milestones.push({ lbl: '3.7 Planning', date: planning.dueDate, sep: true });
-          if (planningFreeze) milestones.push({ lbl: 'RHAI Planning Freeze', date: planningFreeze.dueDate, badge: 'Mandatory from here', badgeColor: '#c62828' });
-          if (eaRelease) milestones.push({ lbl: '3.7 EA Release', date: eaRelease.dueDate });
-          if (gaRelease) milestones.push({ lbl: '3.7 GA Release', date: gaRelease.dueDate });
+          if (planning) milestones.push({ lbl: '3.7 Planning', date: planning.date_finish, sep: true });
+          if (planningFreeze) milestones.push({ lbl: 'RHAI Planning Freeze', date: planningFreeze.date_finish, badge: 'Mandatory from here', badgeColor: '#c62828' });
+          if (eaRelease) milestones.push({ lbl: '3.7 EA Release', date: eaRelease.date_finish });
+          if (gaRelease) milestones.push({ lbl: '3.7 GA Release', date: gaRelease.date_finish });
         }
 
         if (milestones.length > 0) source = 'product-pages';
