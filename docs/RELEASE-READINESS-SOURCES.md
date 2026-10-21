@@ -229,11 +229,19 @@ The Product Pages client performs these calls:
   AND issuetype = Epic
   ```
 
-- Requests `summary`, `status`, `updated`, `resolutiondate`, and `issuetype`.
+- Requests `summary`, `status`, `updated`, `resolutiondate`, and `issuetype`,
+  and expands the Jira changelog for status transitions.
 - Python classifies summaries into Nightly, RC1, RC2, or RC3 and identifies build
   Epics versus test Epics.
-- `updated` is used as a test-start proxy; `resolutiondate` (or Done `updated`)
-  is used as a completion proxy.
+- Test start uses the earliest Jira changelog status transition to `In Progress`.
+  Test completion uses `resolutiondate`, falling back to `updated` only when the
+  Epic is Done. The Jira build-date fallback uses a completed build Epic's
+  `resolutiondate` (or Done `updated`); a completed test Epic can supply it when
+  no build Epic date exists.
+- Build-date source order is optional `ACTUAL_BUILD_DATES` override, then the
+  matching Product Pages release/phase schedule task, then the Jira completion
+  date; the value is null if all are unavailable. The override is read from an
+  environment variable and defaults to empty in the pipeline config.
 - Feeds the Test Execution Phases accordion and the Jira fallback for cycle
   build dates.
 
@@ -408,14 +416,15 @@ executed during extraction.
 - Release Cycle Metrics:
   - Displays code freeze, RC1/RC2 build-received dates, working-day counts,
     test start/finish, TFA milestones, and blocker resolution.
-  - Sources: Product Pages plus Jira test-phase/TFA/blocker queries; working-day
-    counts are calculated locally.
+  - Build-date source order: optional `ACTUAL_BUILD_DATES` override, matching
+    Product Pages schedule task, Jira Epic completion fallback. Other dates
+    come from the Product Pages code-freeze schedule or local YAML fallback,
+    Jira test-phase/TFA/blocker queries; working-day counts are calculated
+    locally.
 
 ## Known data caveat
 
-Jira test-phase `updated` timestamps are proxies, not dedicated test-start
-timestamps. A later edit can make `test_started_date` later than
-`test_finished_date`; the UI currently displays the supplied values rather than
-reordering or suppressing them.
-
-Assisted-by: Codex
+Jira test-start dates use the first changelog transition to `In Progress`.
+Jira completion dates use `resolutiondate`, with `updated` only as a fallback
+for Done Epics. These dates reflect Jira records and may not be the exact time
+the build was physically received or testing began.

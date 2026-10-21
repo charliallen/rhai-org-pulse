@@ -3159,14 +3159,14 @@ version string (spaces and special chars replaced with `_`).
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `release_cycle_metrics.code_freeze_date` | `string \| null` | `YYYY-MM-DD` from Product Pages |
+| `release_cycle_metrics.code_freeze_date` | `string \| null` | `YYYY-MM-DD` from Product Pages, falling back to the local release-variable YAML |
 | `release_cycle_metrics.phases[].phase` | `string` | Test-phase Epic summary from Jira (e.g. `"RC1 Builds Testing"`, `"Nightly Build Wk2 - Jun 22"`) |
 | `release_cycle_metrics.phases[].epic_key` | `string` | Jira Epic key (e.g. `"RHOAIENG-68791"`) |
-| `release_cycle_metrics.phases[].build_ready_date` | `string \| null` | `YYYY-MM-DD`; source: manual override, PP schedule task matching the RC label, or Jira epic Done date |
+| `release_cycle_metrics.phases[].build_ready_date` | `string \| null` | `YYYY-MM-DD`; source order: optional `ACTUAL_BUILD_DATES` override, matching Product Pages release/phase task, then Jira build/test Epic completion date |
 | `release_cycle_metrics.phases[].days_since_code_freeze` | `number \| null` | Working days (Mon–Fri) between `code_freeze_date` and `build_ready_date`; `null` if either is unknown |
-| `release_cycle_metrics.phases[].test_started_date` | `string \| null` | Jira test-phase epic first became active (proxy: `updated` timestamp) |
+| `release_cycle_metrics.phases[].test_started_date` | `string \| null` | Date of the first Jira changelog status transition to `In Progress` for the test-phase Epic |
 | `release_cycle_metrics.phases[].days_to_test_started` | `number \| null` | Working days from `build_ready_date` to `test_started_date` |
-| `release_cycle_metrics.phases[].test_finished_date` | `string \| null` | Jira test-phase epic Done (`resolutiondate` or `updated`) |
+| `release_cycle_metrics.phases[].test_finished_date` | `string \| null` | Jira test-phase Epic `resolutiondate`; falls back to `updated` only if the Epic is Done |
 | `release_cycle_metrics.phases[].days_to_test_finished` | `number \| null` | Working days from `build_ready_date` to `test_finished_date` |
 | `release_cycle_metrics.phases[].tfas_passed_date` | `string \| null` | Max `updated` among TFA tasks when ALL reached In Progress or Done; `null` if any still New |
 | `release_cycle_metrics.phases[].days_to_tfas_passed` | `number \| null` | Working days from `build_ready_date` to `tfas_passed_date` |
@@ -3179,7 +3179,8 @@ version string (spaces and special chars replaced with `_`).
 
 **Notes:**
 - All day counts use Mon–Fri only (no public holidays excluded).
-- Dates are proxies from Jira `updated` timestamps; they represent when Jira recorded the transition, not the exact moment it occurred.
+- `ACTUAL_BUILD_DATES` is an optional JSON environment variable keyed by release and phase; it defaults to empty in the refresh pipeline. Jira build-date fallback uses `resolutiondate`, or `updated` when the Epic is Done.
+- Jira test-start dates use the first recorded changelog transition to `In Progress`; Jira completion dates use `resolutiondate` where available. These record Jira's event dates, not necessarily the exact time the build was physically received or testing began.
 - The TFA and blocker dates are release-level (not per-RC); the same date appears in each phase with different `days_to_*` values.
 - `null` means the milestone has not occurred or data is unavailable; the dashboard renders `—` for null.
 

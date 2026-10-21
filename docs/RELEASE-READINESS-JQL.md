@@ -19,13 +19,19 @@ The script uses values from `JIRA_VERSIONS` when configured; otherwise it derive
 | Value | Source |
 | --- | --- |
 | Code Freeze | Product Pages API, or local release-variable YAML fallback. No JQL. |
-| RC1/RC2 Build Received | Product Pages API first; Jira test-phase Epic query below is the fallback. Python classifies RC/build summaries. |
-| Test Started | Same Epic query; uses Epic `updated` as a proxy. |
-| Test Finished | Same Epic query; uses Epic `resolutiondate`, falling back to `updated`. |
+| RC1/RC2 Build Received | Optional `ACTUAL_BUILD_DATES` override → matching Product Pages schedule task → Jira build/test Epic completion date → null. |
+| Test Started | Same Epic query; Jira changelog's first transition to `In Progress`. |
+| Test Finished | Same Epic query; Epic `resolutiondate`, falling back to `updated` only when the Epic is Done. |
 | TFAs Passed | TFA query below; latest `updated` when every task is In Progress or Done. |
 | TFAs Triaged | TFA query below; latest `updated` when every task is Done. |
 | Blockers Resolved | Resolved-blocker query below; latest `resolutiondate`, falling back to `updated`. |
 | Working-day values | Calculated locally from the dates; no JQL. |
+
+`ACTUAL_BUILD_DATES` is an optional JSON environment variable keyed by release
+and phase, for example `{"rhoai-3.5.EA2":{"RC1 Builds Testing":"2026-07-08"}}`.
+It defaults to empty in the pipeline config, so it has no effect unless
+explicitly configured. When set, it takes precedence over Product Pages and
+Jira for that phase's build date.
 
 Test-phase Epics:
 
