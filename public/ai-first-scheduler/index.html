@@ -4380,13 +4380,9 @@ function renderExecView(){
   const outcomeRows = (outcomeData && outcomeData.outcomes && outcomeData.outcomes.length > 0)
     ? outcomeData.outcomes.map(outcome => {
         if (outcome.total === 0) return '';
-        const statusIcon = outcome.inPlan === 0 ? '✗' : outcome.confidence >= 70 ? '✓' : '⚠';
-        const statusColor = outcome.inPlan === 0 ? '#c62828' : outcome.confidence >= 70 ? '#2e7d32' : '#f57f17';
         const pctColor = outcome.percentComplete >= 80 ? '#2e7d32' : outcome.percentComplete >= 50 ? '#f57f17' : '#c62828';
         const outcomeName = `${outcome.key} ${outcome.title}`;
         return `<tr style="border-bottom:1px solid #f0f0f0;cursor:pointer" data-outcome="${outcomeName}" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
-          <td style="padding:6px 10px;font-size:13px;font-weight:700;color:${statusColor}">${statusIcon}</td>
-          <td style="padding:6px 10px;font-size:10px;font-weight:700;color:#888">—</td>
           <td style="padding:6px 10px;font-size:11px;font-weight:600">${outcome.key} ${outcome.title}<span style="font-size:9px;color:#1d4ed8;margin-left:6px;cursor:pointer;font-weight:600" onclick="event.stopPropagation(); viewOutcomeFeatures('${outcome.key}')">→ view features</span></td>
           <td style="padding:6px 10px;font-size:11px;text-align:center">${outcome.inPlan}/${outcome.total}</td>
           <td style="padding:6px 10px;min-width:80px">
@@ -4482,8 +4478,6 @@ function renderExecView(){
       <div style="font-size:12px;font-weight:700;color:#333;margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">🎯 Outcomes Coverage</div>
       <table style="width:100%;border-collapse:collapse">
         <thead><tr style="border-bottom:2px solid #f0f0f0">
-          <th style="text-align:left;padding:4px 10px;font-size:10px;color:#888;font-weight:600"></th>
-          <th style="text-align:left;padding:4px 10px;font-size:10px;color:#888;font-weight:600">PILLAR</th>
           <th style="text-align:left;padding:4px 10px;font-size:10px;color:#888;font-weight:600">OUTCOME</th>
           <th style="text-align:center;padding:4px 10px;font-size:10px;color:#888;font-weight:600">IN PLAN</th>
           <th style="text-align:center;padding:4px 10px;font-size:10px;color:#888;font-weight:600">% COMPLETE</th>
