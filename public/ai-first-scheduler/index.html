@@ -4097,10 +4097,10 @@ function renderBigRocks(data){
       else if (outcome.inPlan === 0) { cls = 'br-miss'; icon = '✗'; }
       else if (outcome.inPlan < outcome.total) { cls = 'br-warn'; icon = '⚠'; }
 
-      const confColor = outcome.confidence >= 70 ? '#2e7d32' : outcome.confidence >= 40 ? '#f57f17' : '#c62828';
-      const confLabel = outcome.inPlan === 0 ? 'No features in plan' : outcome.confidence >= 70 ? '✓ Confident' : outcome.confidence >= 40 ? '⚠ Lagging' : '✗ At Risk';
+      // Use percentComplete (inPlan/total) for the main display, not confidence
+      const pctColor = outcome.percentComplete >= 80 ? '#2e7d32' : outcome.percentComplete >= 40 ? '#f57f17' : '#c62828';
 
-      return `<div class="br-item br-clickable ${cls}" title="Click to filter table to ${outcome.title}"><div class="br-name">${icon} ${outcome.key} ${outcome.title}</div><div style="font-size:13px;font-weight:700;color:${confColor};margin:4px 0 2px">${outcome.confidence}%</div><div style="font-size:10px;font-weight:600;color:${confColor};margin-bottom:3px">${confLabel}</div><div style="font-size:10px;color:#777">${outcome.inPlan}/${outcome.total} in-plan (${outcome.percentComplete}%)</div></div>`;
+      return `<div class="br-item br-clickable ${cls}" title="Click to filter table to ${outcome.title}"><div class="br-name">${icon} ${outcome.key} ${outcome.title}</div><div style="font-size:13px;font-weight:700;color:${pctColor};margin:4px 0 2px">${outcome.percentComplete}%</div><div style="font-size:10px;color:#777">${outcome.inPlan}/${outcome.total} in-plan</div></div>`;
     }).join('');
 
     panel.style.display = '';
