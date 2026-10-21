@@ -2997,6 +2997,7 @@ window.addEventListener('message', async function(e){
     const {features=[], bugQueue=[], capacity={}, cveReserve=null, lastSyncedAt} = e.data;
     cveReserveData = cveReserve;
     const mapped = features.map(f => ({
+      'Rank': f.Rank || '',
       'Key': f.Key || '',
       'Title': f.Summary || f.Title || '',
       'Components': (f.Components || []).join('; '),
@@ -3772,7 +3773,7 @@ function renderTbl(rows){
       ?'opacity:0.55;background:#f9fafb;'
       :(_needsAction?'border-left:3px solid #f59e0b;':'')+(isSwing?'background:#fff8e1;':_bandBg?'background:'+_bandBg+';':'');
     return cutLine+`<tr id="apv-row-${esc(r['Key'])}" style="${trStyle}" title="${isSwing?'Swing feature — confidence borderline (50–69%), worth discussing at freeze':''}">
-      <td style="color:#bbb">${r['Rank']||'—'}</td>
+      <td style="color:#666;font-weight:600;font-size:13px">${r['Rank']||'—'}</td>
       <td class="score-col" style="display:none"><span class="score">${esc(r['Score'])}</span></td>
       <td><div class="fpdor-cell"><span class="rp ${rCls}" title="${fpdorTooltip}">${esc(r['FPDoR'])||'—'}</span><span class="fpdor-w">w:${esc(r._wFPDoR)}</span>${breakdownHtml}</div></td>
       <td>${(()=>{
