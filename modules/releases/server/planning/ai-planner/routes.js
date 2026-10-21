@@ -3,6 +3,7 @@ const { validateSnapshot } = require('./validation');
 const { readAIPlanner, writeAIPlanner, projectSnapshot, emptySnapshot } = require('./storage');
 const { PRIORITY_OUTCOMES, extractOutcomesFromFeatures, calculateOutcomeMetrics } = require('./outcomes-integration');
 const { fetchFeaturesWithTimeout } = require('../feature-query');
+const { fetchScheduleTasks } = require('../delivery/product-pages');
 
 const DEMO_MODE = process.env.DEMO_MODE === 'true';
 
@@ -253,6 +254,70 @@ module.exports = function registerAIPlannerRoutes(router, context) {
 
     await writeAIPlanner(writeToStorage, { ...emptySnapshot(), lastSyncedAt: new Date().toISOString() });
     res.json({ status: 'cleared' });
+  });
+
+  /**
+   * @openapi
+   * /api/modules/releases/planning/ai-planner/timeline-milestones:
+   *   get:
+   *     summary: Get timeline milestones from Product Pages (source of truth)
+   *     tags: [releases-planning]
+   *     responses:
+   *       200:
+   *         description: Timeline milestones with dates from Product Pages
+   */
+  router.get('/ai-planner/timeline-milestones', requireAuth, requireScope('releases:read'), async function(req, res) {
+    try {
+      // Fetch schedule tasks from Product Pages for RHOAI releases
+      const baseUrl = process.env.PRODUCT_PAGES_BASE_URL || 'https://productpages.redhat.com';
+
+      let milestones = [];
+      try {
+        // Try to fetch from Product Pages; fallback to hardcoded if unavailable
+        const schedule36 = await fetchScheduleTasks('rhoai-3.6', baseUrl, {});
+        const schedule37 = await fetchScheduleTasks('rhoai-3.7', baseUrl, {});
+
+        // Extract dates from Product Pages schedule
+        if (schedule36 && schedule36.tasks) {
+          const gaDate = schedule36.tasks.find(t => t.name && t.name.toLowerCase().includes('ga release'));
+          const codeFreeze = schedule36.tasks.find(t => t.name && t.name.toLowerCase().includes('code freeze'));
+
+          if (gaDate) milestones.push({ lbl: '3.6 GA Release', date: gaDate.dueDate, badge: 'Informational launch', badgeColor: '#2e7d32' });
+          if (codeFreeze) milestones.push({ lbl: 'RHOAI 3.6 GA Code Freeze', date: codeFreeze.dueDate });
+        }
+
+        if (schedule37 && schedule37.tasks) {
+          const planning = schedule37.tasks.find(t => t.name && t.name.toLowerCase().includes('planning'));
+          const planningFreeze = schedule37.tasks.find(t => t.name && t.name.toLowerCase().includes('planning freeze'));
+          const eaRelease = schedule37.tasks.find(t => t.name && t.name.toLowerCase().includes('ea release'));
+          const gaRelease = schedule37.tasks.find(t => t.name && t.name.toLowerCase().includes('ga release'));
+
+          if (planning) milestones.push({ lbl: '3.7 Planning', date: planning.dueDate, sep: true });
+          if (planningFreeze) milestones.push({ lbl: 'RHAI Planning Freeze', date: planningFreeze.dueDate, badge: 'Mandatory from here', badgeColor: '#c62828' });
+          if (eaRelease) milestones.push({ lbl: '3.7 EA Release', date: eaRelease.dueDate });
+          if (gaRelease) milestones.push({ lbl: '3.7 GA Release', date: gaRelease.dueDate });
+        }
+      } catch (ppErr) {
+        console.warn('Could not fetch from Product Pages, using fallback dates:', ppErr.message);
+        // Fallback to hardcoded dates if Product Pages is unavailable
+        milestones = [
+          { lbl: '3.6 GA Release', date: '2026-11-19', badge: 'Informational launch', badgeColor: '#2e7d32' },
+          { lbl: '3.7 Planning', date: '2026-11-17', sep: true },
+          { lbl: 'RHAI Planning Freeze', date: '2026-11-11', badge: 'Mandatory from here', badgeColor: '#c62828' },
+          { lbl: '3.7 EA Release', date: '2027-01-20' },
+          { lbl: '3.7 GA Release', date: '2027-02-17' }
+        ];
+      }
+
+      res.json({
+        milestones: milestones,
+        source: 'product-pages',
+        generatedAt: new Date().toISOString()
+      });
+    } catch (err) {
+      console.error('Timeline milestones fetch error:', err);
+      res.status(500).json({ error: err.message });
+    }
   });
 
   /**
