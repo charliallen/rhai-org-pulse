@@ -218,6 +218,19 @@ The Product Pages client performs these calls:
 - Requests `status` and returns the count plus a Jira filter URL.
 - Feeds the Open Issues to Validate banner.
 
+### Release Cycle Metrics source table
+
+| Displayed value | Source and fallback |
+| --- | --- |
+| Code Freeze | Product Pages schedule; local release-variable YAML if Product Pages has no date. |
+| Build Received (`phases[].build_ready_date`) | Optional `ACTUAL_BUILD_DATES` override (empty by default) → matching Product Pages release/phase task → Jira build Epic completion date; if there is no build Epic date, completed test Epic date; otherwise `null`. |
+| Test Started | First Jira changelog transition to `In Progress` on the test-phase Epic. |
+| Test Finished | Jira test-phase Epic `resolutiondate`; `updated` only if the Epic is Done and has no resolution date. |
+| TFAs Passed | Latest TFA task `updated` date once every task is In Progress or Done. |
+| TFAs Triaged | Latest TFA task `updated` date once every task is Done. |
+| Blockers Resolved | `null` while any blocker is open; otherwise latest resolved blocker `resolutiondate`, falling back to `updated`. |
+| Working-day counts | Calculated locally from the dates; Monday–Friday only, with no public holidays excluded. |
+
 ### 9. Test-phase Epics for Nightly/RC dates
 
 - Function: `fetch_test_phase_epic_dates()`
