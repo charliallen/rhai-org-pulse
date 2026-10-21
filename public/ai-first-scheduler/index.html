@@ -437,16 +437,19 @@ tr:hover td{background:#f8fafc}
 
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
       <!-- Priority Outcomes (Locked) -->
-      <div style="background:#fff;border:1px solid #86efac;border-radius:8px;padding:12px">
-        <div style="font-size:10px;color:#666;font-weight:600;margin-bottom:6px;text-transform:uppercase">🎯 Priority Outcomes (20%)</div>
+      <div id="capacity-locked-card" style="background:#fff;border:1px solid #86efac;border-radius:8px;padding:12px">
+        <div style="font-size:10px;color:#666;font-weight:600;margin-bottom:6px;text-transform:uppercase;display:flex;align-items:center;justify-content:space-between">
+          <span>🎯 Priority Outcomes</span>
+          <span id="capacity-locked-badge" style="font-size:9px;background:#dcfce7;color:#166534;padding:2px 6px;border-radius:3px;font-weight:700">Target 20%</span>
+        </div>
         <div style="display:flex;align-items:baseline;gap:4px">
           <span id="capacity-locked" style="font-size:24px;font-weight:800;color:#166534">0</span>
-          <span style="font-size:11px;color:#999">/ 250 target</span>
+          <span style="font-size:11px;color:#999">/ 250</span>
         </div>
         <div id="capacity-locked-bar" style="height:4px;background:#dcfce7;border-radius:2px;margin-top:8px;overflow:hidden">
           <div style="height:100%;background:#22c55e;width:0%;transition:width .3s"></div>
         </div>
-        <div id="capacity-locked-status" style="font-size:10px;color:#166534;margin-top:4px;font-weight:600">0%</div>
+        <div id="capacity-locked-status" style="font-size:10px;color:#166534;margin-top:4px;font-weight:600">0% allocated</div>
       </div>
 
       <!-- Flexible Features -->
@@ -3422,6 +3425,7 @@ function updateLandingCapacity(filteredRows){
   // 20% target = ~250 for full 41-release ceiling
   const targetLocked = 250;
   const lockedPct = Math.min(Math.round(locked.length / targetLocked * 100), 100);
+  const isOverTarget = locked.length > targetLocked;
 
   // Calculate filter label
   const rel = v('f-rel');
@@ -3441,8 +3445,31 @@ function updateLandingCapacity(filteredRows){
   document.getElementById('capacity-flexible').textContent = flexible.length;
 
   const lockedBar = panel.querySelector('#capacity-locked-bar div');
-  if(lockedBar) lockedBar.style.width = lockedPct + '%';
-  document.getElementById('capacity-locked-status').textContent = lockedPct + '%';
+  if(lockedBar) {
+    lockedBar.style.width = lockedPct + '%';
+    lockedBar.style.background = isOverTarget ? '#ef4444' : '#22c55e';
+  }
+
+  // Update card styling to show alert when over target
+  const lockedCard = document.getElementById('capacity-locked-card');
+  const lockedBadge = document.getElementById('capacity-locked-badge');
+  if(lockedCard && lockedBadge) {
+    if(isOverTarget) {
+      lockedCard.style.border = '1px solid #fecaca';
+      lockedCard.style.background = '#fef2f2';
+      lockedBadge.style.background = '#fee2e2';
+      lockedBadge.style.color = '#991b1b';
+      lockedBadge.textContent = '⚠️ OVER 20%';
+    } else {
+      lockedCard.style.border = '1px solid #86efac';
+      lockedCard.style.background = '#fff';
+      lockedBadge.style.background = '#dcfce7';
+      lockedBadge.style.color = '#166534';
+      lockedBadge.textContent = 'Target 20%';
+    }
+  }
+
+  document.getElementById('capacity-locked-status').textContent = lockedPct + '% allocated';
 
   // Overall capacity: sum locked + flexible, target 500 for 40%+20%=60%
   const totalCapacityTarget = 500;
@@ -4603,8 +4630,8 @@ async function renderScheduleStrip(){
     {lbl:'3.6 GA Release',date:'2026-11-19',badge:'Informational launch',badgeColor:'#2e7d32'},
     // 3.7 (EA1 skipped)
     {lbl:'RHAI Planning Freeze',date:'2026-11-11',badge:'Mandatory from here',badgeColor:'#c62828'},
-    {lbl:'3.7 EA2 Release Prep',date:'2026-12-15'},
-    {lbl:'3.7 EA2 Release',date:'2027-01-20'},
+    {lbl:'3.7 EA Release Prep',date:'2026-12-15'},
+    {lbl:'3.7 EA Release',date:'2027-01-20'},
     {lbl:'3.7 GA Release',date:'2027-02-17'},
     // 3.8
     {lbl:'3.8 GA Summit',date:'2027-05-27',sep38:true},
