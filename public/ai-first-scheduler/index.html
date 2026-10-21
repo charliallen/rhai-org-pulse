@@ -4566,12 +4566,31 @@ function toggleSummary(){
   }
 }
 
+// ── FETCH TIMELINE MILESTONES FROM PRODUCT PAGES ─────────────────────────────────
+async function fetchTimelineMilestones(){
+  try {
+    const resp=await fetch('/api/modules/releases/planning/ai-planner/timeline-milestones');
+    if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data=await resp.json();
+    return data.milestones || [];
+  } catch(err) {
+    console.warn('Failed to fetch timeline from Product Pages, using fallback dates:', err.message);
+    // Return empty to fall back to hardcoded in renderScheduleStrip
+    return null;
+  }
+}
+
 // ── SCHEDULE TIMELINE STRIP ───────────────────────────────────────────────────────
-function renderScheduleStrip(){
+async function renderScheduleStrip(){
   const strip=document.getElementById('sched-strip');
   if(!strip) return;
   const today=new Date();
-  const milestones=[
+
+  // Try to fetch from Product Pages; fall back to hardcoded dates
+  let timelineMilestones=await fetchTimelineMilestones();
+
+  const milestones=timelineMilestones || [
+    // Fallback: hardcoded dates (used if Product Pages API is unavailable)
     // 3.6 — upcoming only (past milestones removed per Sarah Finn Sep 16)
     {lbl:'RHOAI EA2 Code Freeze',date:'2026-09-18'},
     {lbl:'3.6 GA Planning Freeze',date:'2026-09-23',urgent:true},
@@ -4614,7 +4633,7 @@ function renderScheduleStrip(){
     return todayPfx+`<div class="sm ${cls}"><div class="sm-lbl">${m.lbl}</div><div class="sm-date">${fmt(dt)}</div><div class="sm-badge">${badge}</div>${rolloutBadge}</div>`;
   }).join('');
 }
-renderScheduleStrip();
+(async () => { await renderScheduleStrip(); })();
 
 // ── EMBEDDED DATA (feature-readiness-2026-08-12.csv, 1148 features) ─────────────
 const SAMPLE=`Rank,Key,Title,Score,FPDoR,Failed FPDoR Items,Outcome,Target Versions,Fix Version,Components,Team,Status,Priority,Confidence,Labels
