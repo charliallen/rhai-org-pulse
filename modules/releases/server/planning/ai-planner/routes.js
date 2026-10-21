@@ -3,7 +3,7 @@ const { validateSnapshot } = require('./validation');
 const { readAIPlanner, writeAIPlanner, projectSnapshot, emptySnapshot } = require('./storage');
 const { PRIORITY_OUTCOMES, extractOutcomesFromFeatures, calculateOutcomeMetrics } = require('./outcomes-integration');
 const { fetchFeaturesWithTimeout } = require('../feature-query');
-const { fetchScheduleTasks } = require('../delivery/product-pages');
+const { fetchScheduleTasks, getProductPagesToken } = require('../../delivery/product-pages');
 
 const DEMO_MODE = process.env.DEMO_MODE === 'true';
 
@@ -268,38 +268,46 @@ module.exports = function registerAIPlannerRoutes(router, context) {
    */
   router.get('/ai-planner/timeline-milestones', requireAuth, requireScope('releases:read'), async function(req, res) {
     try {
-      // Fetch schedule tasks from Product Pages for RHOAI releases
       const baseUrl = process.env.PRODUCT_PAGES_BASE_URL || 'https://productpages.redhat.com';
 
       let milestones = [];
+      let source = 'fallback';
       try {
-        // Try to fetch from Product Pages; fallback to hardcoded if unavailable
-        const schedule36 = await fetchScheduleTasks('rhoai-3.6', baseUrl, {});
-        const schedule37 = await fetchScheduleTasks('rhoai-3.7', baseUrl, {});
+        const deliveryConfig = await readFromStorage('releases/delivery/config.json');
+        const token = await getProductPagesToken(deliveryConfig);
+        const headers = token
+          ? { Accept: 'application/json', Authorization: `Bearer ${token}` }
+          : { Accept: 'application/json' };
 
-        // Extract dates from Product Pages schedule
-        if (schedule36 && schedule36.tasks) {
-          const gaDate = schedule36.tasks.find(t => t.name && t.name.toLowerCase().includes('ga release'));
-          const codeFreeze = schedule36.tasks.find(t => t.name && t.name.toLowerCase().includes('code freeze'));
+        const schedule36 = await fetchScheduleTasks('rhoai-3.6', baseUrl, headers);
+        const schedule37 = await fetchScheduleTasks('rhoai-3.7', baseUrl, headers);
+
+        if (schedule36 && schedule36.length > 0) {
+          const gaDate = schedule36.find(t => t.name && t.name.toLowerCase().includes('ga release'));
+          const codeFreeze = schedule36.find(t => t.name && t.name.toLowerCase().includes('code freeze'));
 
           if (gaDate) milestones.push({ lbl: '3.6 GA Release', date: gaDate.dueDate, badge: 'Informational launch', badgeColor: '#2e7d32' });
           if (codeFreeze) milestones.push({ lbl: 'RHOAI 3.6 GA Code Freeze', date: codeFreeze.dueDate });
         }
 
-        if (schedule37 && schedule37.tasks) {
-          const planning = schedule37.tasks.find(t => t.name && t.name.toLowerCase().includes('planning'));
-          const planningFreeze = schedule37.tasks.find(t => t.name && t.name.toLowerCase().includes('planning freeze'));
-          const eaRelease = schedule37.tasks.find(t => t.name && t.name.toLowerCase().includes('ea release'));
-          const gaRelease = schedule37.tasks.find(t => t.name && t.name.toLowerCase().includes('ga release'));
+        if (schedule37 && schedule37.length > 0) {
+          const planningFreeze = schedule37.find(t => t.name && t.name.toLowerCase().includes('planning freeze'));
+          const planning = schedule37.find(t => t.name && t.name.toLowerCase().includes('planning') && !t.name.toLowerCase().includes('freeze'));
+          const eaRelease = schedule37.find(t => t.name && t.name.toLowerCase().includes('ea release'));
+          const gaRelease = schedule37.find(t => t.name && t.name.toLowerCase().includes('ga release'));
 
           if (planning) milestones.push({ lbl: '3.7 Planning', date: planning.dueDate, sep: true });
           if (planningFreeze) milestones.push({ lbl: 'RHAI Planning Freeze', date: planningFreeze.dueDate, badge: 'Mandatory from here', badgeColor: '#c62828' });
           if (eaRelease) milestones.push({ lbl: '3.7 EA Release', date: eaRelease.dueDate });
           if (gaRelease) milestones.push({ lbl: '3.7 GA Release', date: gaRelease.dueDate });
         }
+
+        if (milestones.length > 0) source = 'product-pages';
       } catch (ppErr) {
         console.warn('Could not fetch from Product Pages, using fallback dates:', ppErr.message);
-        // Fallback to hardcoded dates if Product Pages is unavailable
+      }
+
+      if (milestones.length === 0) {
         milestones = [
           { lbl: '3.6 GA Release', date: '2026-11-19', badge: 'Informational launch', badgeColor: '#2e7d32' },
           { lbl: '3.7 Planning', date: '2026-11-17', sep: true },
@@ -311,7 +319,7 @@ module.exports = function registerAIPlannerRoutes(router, context) {
 
       res.json({
         milestones: milestones,
-        source: 'product-pages',
+        source: source,
         generatedAt: new Date().toISOString()
       });
     } catch (err) {
