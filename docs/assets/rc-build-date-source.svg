@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1120" viewBox="0 0 1400 1120" role="img" aria-labelledby="title desc">
+  <title id="title">RC1 and RC2 Build Received date source order</title>
+  <desc id="desc">The optional ACTUAL_BUILD_DATES override takes precedence, followed by a matching Product Pages schedule task, then Jira phase Epic completion dates. If none provides a date, the value is null.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b" />
+    </marker>
+    <style>
+      text { font-family: Arial, Helvetica, sans-serif; }
+      .heading { fill: #0f172a; font-size: 36px; font-weight: 700; }
+      .subheading { fill: #475569; font-size: 20px; }
+      .step { fill: #1d4ed8; font-size: 19px; font-weight: 700; letter-spacing: 1px; }
+      .title { fill: #0f172a; font-size: 27px; font-weight: 700; }
+      .body { fill: #334155; font-size: 19px; }
+      .flow { fill: #64748b; font-size: 16px; font-weight: 600; }
+      .result { fill: #166534; font-size: 16px; font-weight: 700; }
+    </style>
+  </defs>
+
+  <rect width="1400" height="1120" rx="20" fill="#f8fafc" />
+  <text x="700" y="62" text-anchor="middle" class="heading">RC1 / RC2 Build Received</text>
+  <text x="700" y="98" text-anchor="middle" class="subheading">Source order for <tspan font-family="monospace">phases[].build_ready_date</tspan></text>
+
+  <g>
+    <rect x="100" y="140" width="1200" height="170" rx="16" fill="#ffffff" stroke="#93c5fd" stroke-width="2" />
+    <circle cx="150" cy="190" r="26" fill="#dbeafe" />
+    <text x="150" y="197" text-anchor="middle" class="step">1</text>
+    <text x="195" y="183" class="step">OPTIONAL OVERRIDE</text>
+    <text x="195" y="224" class="title">ACTUAL_BUILD_DATES</text>
+    <text x="195" y="263" class="body">Use the configured date for this release and RC phase, if present.</text>
+    <text x="195" y="290" class="body">The pipeline configuration defaults to empty.</text>
+    <rect x="1040" y="181" width="220" height="42" rx="21" fill="#dcfce7" />
+    <text x="1150" y="208" text-anchor="middle" class="result">DATE FOUND → use it</text>
+  </g>
+
+  <line x1="700" y1="310" x2="700" y2="354" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" />
+  <text x="730" y="340" class="flow">No date → continue</text>
+
+  <g>
+    <rect x="100" y="365" width="1200" height="170" rx="16" fill="#ffffff" stroke="#c4b5fd" stroke-width="2" />
+    <circle cx="150" cy="415" r="26" fill="#ede9fe" />
+    <text x="150" y="422" text-anchor="middle" class="step" fill="#6d28d9">2</text>
+    <text x="195" y="408" class="step" fill="#6d28d9">SCHEDULE SOURCE</text>
+    <text x="195" y="449" class="title">Product Pages schedule task</text>
+    <text x="195" y="488" class="body">Match the release and RC1/RC2 task. Use the later of</text>
+    <text x="195" y="515" class="body"><tspan font-family="monospace">date_start</tspan> and <tspan font-family="monospace">date_finish</tspan>; use the available one if only one is set.</text>
+    <rect x="1040" y="406" width="220" height="42" rx="21" fill="#dcfce7" />
+    <text x="1150" y="433" text-anchor="middle" class="result">DATE FOUND → use it</text>
+  </g>
+
+  <line x1="700" y1="535" x2="700" y2="579" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" />
+  <text x="730" y="565" class="flow">No date → continue</text>
+
+  <g>
+    <rect x="100" y="590" width="1200" height="220" rx="16" fill="#ffffff" stroke="#fcd34d" stroke-width="2" />
+    <circle cx="150" cy="640" r="26" fill="#fef3c7" />
+    <text x="150" y="647" text-anchor="middle" class="step" fill="#b45309">3</text>
+    <text x="195" y="633" class="step" fill="#b45309">JIRA FALLBACK</text>
+    <text x="195" y="674" class="title">Phase Epic completion date</text>
+    <text x="195" y="713" class="body">First use the completed build Epic's <tspan font-family="monospace">resolutiondate</tspan></text>
+    <text x="195" y="740" class="body">(or <tspan font-family="monospace">updated</tspan> when Done and no resolution date exists).</text>
+    <text x="195" y="777" class="body">If there is no build Epic date, use the completed test Epic date.</text>
+    <rect x="1040" y="631" width="220" height="42" rx="21" fill="#dcfce7" />
+    <text x="1150" y="658" text-anchor="middle" class="result">DATE FOUND → use it</text>
+  </g>
+
+  <line x1="700" y1="810" x2="700" y2="854" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" />
+  <text x="730" y="840" class="flow">No date from any source</text>
+
+  <g>
+    <rect x="100" y="865" width="1200" height="125" rx="16" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2" />
+    <text x="150" y="918" class="step" fill="#475569">FINAL VALUE</text>
+    <text x="350" y="930" class="title"><tspan font-family="monospace">null</tspan></text>
+    <text x="450" y="928" class="body">when no source provides a date</text>
+  </g>
+</svg>

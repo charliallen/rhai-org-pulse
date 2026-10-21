@@ -1,8 +1,11 @@
 # Release Readiness Dashboard: Sources and UI Coverage
 
-## Dashboard snapshot
+## RC build-date source order
 
-![Release Readiness dashboard snapshot](assets/release-readiness-ea2-overview.png)
+The diagram shows how the Release Cycle Metrics value
+`phases[].build_ready_date` is selected for RC1 and RC2.
+
+![RC1 and RC2 Build Received source order: ACTUAL_BUILD_DATES override, Product Pages schedule task, Jira Epic completion date, then null](assets/rc-build-date-source.svg)
 
 ## Source conventions
 
