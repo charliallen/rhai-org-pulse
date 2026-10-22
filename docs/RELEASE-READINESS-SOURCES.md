@@ -2,10 +2,10 @@
 
 ## RC build-date source order
 
-The diagram shows how the Release Cycle Metrics value
-`phases[].build_ready_date` is selected for RC1 and RC2.
+The diagram shows how `phases[].build_ready_date` is selected for each RC
+found by the extractor, including RC3 when its Jira test Epic is present.
 
-![Source order for Build Received: manual override, Stage Promoter, Product Pages, then Jira only if those have no valid date. For each RC, use the Push to Stage issue's resolved date first; if missing or before Code Freeze or after Test Started, try Prepare. Testing issue dates are not Build Received; return null if no valid date is found.](assets/rc-build-date-source.svg)
+![Build Received source order for each RC found, including RC3: manual override, Stage Promoter, Product Pages, then Jira if earlier sources have no usable date. Check that RC's Push to Stage issue first, then its Prepare issue if the first date is missing or outside the date limits.](assets/rc-build-date-source.svg)
 
 ## Source conventions
 
@@ -226,7 +226,7 @@ The Product Pages client performs these calls:
 | Displayed value | Source and fallback |
 | --- | --- |
 | Code Freeze | Product Pages schedule; the checked-in release-variable YAML fills the field when Product Pages has no value. |
-| RC1/RC2 Build Received (`phases[].build_ready_date`) | Manual override → Stage Promoter → Product Pages schedule (checked-in YAML fills missing fields) → if those have no usable date, Jira: `RCn Push to Stage` resolved date, then `Prepare RCn` if needed → `null`. |
+| Build Received for each RC found (`phases[].build_ready_date`) | Manual override → Stage Promoter → Product Pages schedule (checked-in YAML fills missing fields) → if those have no usable date, Jira: `RCn Push to Stage` resolved date, then `Prepare RCn` if needed → `null`. |
 | Test Started | First Jira changelog transition to `In Progress` on the test-phase Epic. |
 | Test Finished | Jira test-phase Epic `resolutiondate`; `updated` only if the Epic is Done and has no resolution date. |
 | TFAs Passed | Latest TFA task `updated` date once every task is In Progress or Done. |
@@ -255,12 +255,12 @@ The Product Pages client performs these calls:
   test Epic is Done. Build Received first checks the manual override, Stage
   Promoter, and Product Pages schedule (with checked-in YAML filling missing
   schedule fields). Jira is checked only if those sources have no usable date.
-  For RC1, the extractor checks the issue whose summary contains `RC1 Push to
-  Stage`, then `Prepare RC1` if the first date is missing or outside the rule:
-  on or after Code Freeze and on or before Test Started, when those dates are
-  known. RC2 uses the same order. The `RCn Builds Testing` issue gives test
-  dates only. If neither build issue qualifies, Jira provides no Build Received
-  date; the extractor does not use a build issue's `updated` date instead.
+  For each RC found, the extractor checks the issue whose summary contains
+  `RCn Push to Stage`, then `Prepare RCn` if the first date is missing or
+  outside the rule: on or after Code Freeze and on or before Test Started, when
+  those dates are known. This includes RC3. The `RCn Builds Testing` issue gives
+  test dates only. If neither build issue qualifies, Jira provides no Build
+  Received date; the extractor does not use a build issue's `updated` date.
 - Candidate Build Received dates before Code Freeze or after Test Started are
   skipped so the next source can be tried. If no candidate is available and
   valid, the value is `null`.
@@ -297,7 +297,8 @@ The Product Pages client performs these calls:
 - If every task is In Progress or Done, the latest `updated` becomes
   `tfas_passed_date`. If every task is Done, the latest `updated` becomes
   `tfas_triaged_date`.
-- Feeds both RC1 and RC2 cycle timelines with release-scoped dates.
+- Feeds every returned RC cycle timeline with release-scoped dates, including
+  RC3 when its test Epic is present.
 
 ### 11. Resolved blockers
 
@@ -317,7 +318,7 @@ The Product Pages client performs these calls:
 
 - Requests `status`, `resolutiondate`, and `updated`; selects the latest
   resolution date, falling back to updated.
-- Feeds both RC1 and RC2 cycle timelines.
+- Feeds every returned RC cycle timeline, including RC3 when present.
 
 ### 12. TFA totals
 
@@ -450,7 +451,8 @@ executed during extraction.
   - Displays phase name, done/total, percentage, RAG, and expandable tasks.
   - Source: initiative child JQL and task data returned through child queries.
 - Release Cycle Metrics:
-  - Displays code freeze, RC1/RC2 build-received dates, working-day counts,
+  - Displays code freeze and Build Received dates for every returned RC phase
+    (including RC3 when present), working-day counts,
     test start/finish, TFA milestones, and blocker resolution.
   - Build-date source order: optional `ACTUAL_BUILD_DATES` override, Stage
     Promoter, Product Pages schedule with checked-in release-variable YAML

@@ -19,7 +19,7 @@ The script uses values from `JIRA_VERSIONS` when configured; otherwise it derive
 | Value | Source |
 | --- | --- |
 | Code Freeze | Product Pages API; the checked-in release-variable YAML fills the field when Product Pages has no value. No JQL. |
-| RC1/RC2 Build Received | Manual override → Stage Promoter → Product Pages schedule (checked-in YAML fills missing fields) → if those have no usable date, Jira: `RCn Push to Stage` resolved date, then `Prepare RCn` if needed → `null`. |
+| Build Received for each RC found | Manual override → Stage Promoter → Product Pages schedule (checked-in YAML fills missing fields) → if those have no usable date, Jira: `RCn Push to Stage` resolved date, then `Prepare RCn` if needed → `null`. |
 | Test Started | Same release-phase Epic query; first Jira changelog transition to `In Progress` on the test Epic. |
 | Test Finished | Same query; test Epic `resolutiondate`, falling back to `updated` only when that test Epic is Done. |
 | TFAs Passed | TFA query below; latest `updated` when every task is In Progress or Done. |
@@ -78,9 +78,10 @@ and Product Pages/YAML have no usable date. For RC1, the extractor checks:
 2. If that date is missing or outside those limits, check the Epic whose
    summary contains `Prepare RC1`, using the same date rule.
 
-Repeat the same order for RC2. If neither Jira date qualifies, Jira supplies no
-Build Received date. The extractor does not substitute a test Epic's status or
-completion date, or a build Epic's `updated` date.
+Repeat the same order for every RC found, including RC3. If neither Jira date
+qualifies, Jira supplies no Build Received date. The extractor does not
+substitute a test Epic's status or completion date, or a build Epic's `updated`
+date.
 
 TFA milestones:
 
