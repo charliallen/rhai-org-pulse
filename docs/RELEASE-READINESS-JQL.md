@@ -19,7 +19,7 @@ The script uses values from `JIRA_VERSIONS` when configured; otherwise it derive
 | Value | Source |
 | --- | --- |
 | Code Freeze | Product Pages API; the checked-in release-variable YAML fills the field when Product Pages has no value. No JQL. |
-| RC1/RC2 Build Received | Optional `ACTUAL_BUILD_DATES` override → successful matching Stage Promoter RC run → matching Product Pages RC task (with checked-in release-variable YAML filling a missing schedule field) → Jira RC build Epic `resolutiondate`: `RCn Push to Stage` first, then `Prepare RCn` if the first date is missing or outside the valid date window → `null`. |
+| RC1/RC2 Build Received | Optional `ACTUAL_BUILD_DATES` override → successful matching Stage Promoter RC run → matching Product Pages RC task (with checked-in release-variable YAML filling a missing schedule field) → Jira issue Resolution Date: `RCn Push to Stage` first, then `Prepare RCn` if its date is missing, before Code Freeze, or after Test Started → `null`. |
 | Test Started | Same release-phase Epic query; first Jira changelog transition to `In Progress` on the test Epic. |
 | Test Finished | Same query; test Epic `resolutiondate`, falling back to `updated` only when that test Epic is Done. |
 | TFAs Passed | TFA query below; latest `updated` when every task is In Progress or Done. |
@@ -56,7 +56,7 @@ maps to `release_schedule.rc1_build_date`; its adjacent comment cites
 `#rhoai-build-notifications`. This is version-controlled input read by the CI
 extractor, not a file generated on the dashboard host.
 
-Release initiative Epics (Test Started/Finished and Jira Build Received fallback):
+Release initiative Epics (test dates and RC Build Received dates):
 
 ```jql
 (parent = <INITIATIVE_KEY>
@@ -64,16 +64,16 @@ Release initiative Epics (Test Started/Finished and Jira Build Received fallback
 AND issuetype = Epic
 ```
 
-This query returns the release initiative's Epics. The extractor uses the
-`RCn Builds Testing` Epic for Test Started/Finished and the RC build Epics as a
-last Jira fallback for Build Received. For example, for RC1 it reads the Jira
-`resolutiondate` field on the `RC1 Push to Stage` Epic first. If that field is
-empty, or its date is before Code Freeze or after Test Started, it tries the
-`Prepare RC1` Epic's `resolutiondate`. It applies the same order for each RC.
-The Jira fallback is reached only when the earlier Build Received sources do
-not provide a valid date. A test Epic's transition or completion date does not
-supply Build Received, and the extractor does not use a build Epic's `updated`
-date for it.
+This query returns the Epics under the release initiative. The extractor gets
+Test Started and Test Finished from each `RCn Builds Testing` Epic. It gets a
+Build Received date from these Jira results only if the earlier sources have
+no valid date. For RC1, it reads the `resolutiondate` field (the date Jira
+recorded for resolving the issue) on the `RC1 Push to Stage` Epic first. If
+that field is empty, or the date is before Code Freeze or after Test Started,
+it checks the `Prepare RC1` Epic's `resolutiondate`. It repeats this order for
+each RC. If neither build Epic has a date within the known bounds, Jira
+provides no Build Received date. Test Epic transitions/completions and a build
+Epic's `updated` date are not used for Build Received.
 
 TFA milestones:
 
