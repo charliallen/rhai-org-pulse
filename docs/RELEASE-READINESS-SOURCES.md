@@ -3,10 +3,9 @@
 ## RC build-date source order
 
 The diagram shows how `phases[].build_ready_date` is selected for each RC
-number found by the extractor, including RC4 and higher-numbered RCs when
-their Jira test Epics are present.
+number found by the extractor when its Jira test Epic is present.
 
-![Build Received source order for every RC number found, including RC4 and higher: manual override, Stage Promoter, Product Pages, then Jira if earlier sources have no usable date. Check that RC's Push to Stage issue first, then its Prepare issue if the first date is missing or outside the date limits.](assets/rc-build-date-source.svg)
+![Build Received source order for every RC number found: manual override, Stage Promoter, Product Pages, then Jira if earlier sources have no usable date. Check that RC's Push to Stage issue first, then its Prepare issue if the first date is missing or outside the date limits.](assets/rc-build-date-source.svg)
 
 ## Source conventions
 
@@ -250,8 +249,8 @@ The Product Pages client performs these calls:
   and expands the Jira changelog for status transitions.
 - The query returns the release initiative's Epics used by both test-phase date
   extraction and Jira Build Received date selection. Python classifies summaries
-  into Nightly or an RC-numbered phase (RC1, RC2, RC3, RC4, and later) and
-  identifies build Epics versus test Epics.
+  into Nightly or an RC-numbered phase and identifies build Epics versus test
+  Epics.
 - Test start uses the earliest Jira changelog status transition to `In Progress`.
   Test completion uses `resolutiondate`, falling back to `updated` only when the
   test Epic is Done. Build Received first checks the manual override, Stage
@@ -260,10 +259,9 @@ The Product Pages client performs these calls:
   For each RC found, the extractor checks the issue whose summary contains
   `RCn Push to Stage`, then `Prepare RCn` if the first date is missing or
   outside the rule: on or after Code Freeze and on or before Test Started, when
-  those dates are known. This includes RC4 and any higher-numbered RC found by
-  the query. The `RCn Builds Testing` issue gives test dates only. If neither
-  build issue qualifies, Jira provides no Build Received date; the extractor
-  does not use a build issue's `updated` date.
+  those dates are known. The `RCn Builds Testing` issue gives test dates only.
+  If neither build issue qualifies, Jira provides no Build Received date; the
+  extractor does not use a build issue's `updated` date.
 - Candidate Build Received dates before Code Freeze or after Test Started are
   skipped so the next source can be tried. If no candidate is available and
   valid, the value is `null`.
@@ -300,8 +298,7 @@ The Product Pages client performs these calls:
 - If every task is In Progress or Done, the latest `updated` becomes
   `tfas_passed_date`. If every task is Done, the latest `updated` becomes
   `tfas_triaged_date`.
-- Feeds every returned RC cycle timeline with release-scoped dates, including
-  RC4 and higher-numbered RCs when their test Epics are present.
+- Feeds the returned RC cycle timelines with release-scoped dates.
 
 ### 11. Resolved blockers
 
@@ -321,8 +318,7 @@ The Product Pages client performs these calls:
 
 - Requests `status`, `resolutiondate`, and `updated`; selects the latest
   resolution date, falling back to updated.
-- Feeds every returned RC cycle timeline, including RC4 and higher-numbered
-  RCs when present.
+- Feeds blocker resolution dates into every returned RC cycle timeline.
 
 ### 12. TFA totals
 
@@ -455,8 +451,8 @@ executed during extraction.
   - Displays phase name, done/total, percentage, RAG, and expandable tasks.
   - Source: initiative child JQL and task data returned through child queries.
 - Release Cycle Metrics:
-  - Displays code freeze and Build Received dates for every returned RC phase
-    (including RC4 and higher-numbered RCs when present), working-day counts,
+  - Displays code freeze and Build Received dates for every returned RC phase,
+    working-day counts,
     test start/finish, TFA milestones, and blocker resolution.
   - Build-date source order: optional `ACTUAL_BUILD_DATES` override, Stage
     Promoter, Product Pages schedule with checked-in release-variable YAML
