@@ -18,7 +18,7 @@
   </defs>
 
   <rect width="1400" height="1480" rx="20" fill="#f8fafc" />
-  <text x="700" y="62" text-anchor="middle" class="heading">RC Build Received — same rules for RC1, RC2, RC3, etc.</text>
+  <text x="700" y="62" text-anchor="middle" class="heading">RC Build Received — same rules for every RC number found</text>
   <text x="700" y="98" text-anchor="middle" class="subheading">Source order for <tspan font-family="monospace">phases[].build_ready_date</tspan></text>
 
   <g>
@@ -72,7 +72,7 @@
     <text x="195" y="883" class="step" fill="#b45309">JIRA: CHECK THIS ONLY IF STEPS 1–3 HAVE NO VALID DATE</text>
     <text x="195" y="924" class="title">Check the RC build issues in this order</text>
     <text x="195" y="963" class="body">For each RC found, check its <tspan font-family="monospace">RCn Push to Stage</tspan> Jira issue first.</text>
-    <text x="195" y="992" class="body">If missing or outside the date limits, check <tspan font-family="monospace">Prepare RCn</tspan>. This includes RC3.</text>
+    <text x="195" y="992" class="body">If missing or outside the date limits, check <tspan font-family="monospace">Prepare RCn</tspan>. This includes RC4 and later RCs.</text>
     <text x="195" y="1021" class="body">Use dates on/after Code Freeze and on/before Test Started. If neither qualifies, result is <tspan font-family="monospace">null</tspan>.</text>
     <rect x="1040" y="881" width="220" height="42" rx="21" fill="#dcfce7" />
     <text x="1150" y="908" text-anchor="middle" class="result">DATE FOUND → use it</text>

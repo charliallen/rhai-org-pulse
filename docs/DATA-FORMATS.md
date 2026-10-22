@@ -3162,7 +3162,7 @@ version string (spaces and special chars replaced with `_`).
 | `release_cycle_metrics.code_freeze_date` | `string \| null` | `YYYY-MM-DD` from Product Pages; the checked-in release-variable YAML fills the field when Product Pages has no value |
 | `release_cycle_metrics.phases[].phase` | `string` | Test-phase Epic summary from Jira (e.g. `"RC1 Builds Testing"`, `"Nightly Build Wk2 - Jun 22"`) |
 | `release_cycle_metrics.phases[].epic_key` | `string` | Jira Epic key (e.g. `"RHOAIENG-68791"`) |
-| `release_cycle_metrics.phases[].build_ready_date` | `string \| null` | `YYYY-MM-DD`; same source order for every RC phase found, including RC3: manual override → Stage Promoter → Product Pages schedule (checked-in YAML fills missing fields) → Jira `RCn Push to Stage` resolved date, then `Prepare RCn` if needed → `null` |
+| `release_cycle_metrics.phases[].build_ready_date` | `string \| null` | `YYYY-MM-DD`; same source order for every RC-numbered phase found (RC1, RC2, RC3, RC4, and higher): manual override → Stage Promoter → Product Pages schedule (checked-in YAML fills missing fields) → Jira `RCn Push to Stage` resolved date, then `Prepare RCn` if needed → `null` |
 | `release_cycle_metrics.phases[].days_since_code_freeze` | `number \| null` | Working days (Mon–Fri) between `code_freeze_date` and `build_ready_date`; `null` if either is unknown |
 | `release_cycle_metrics.phases[].test_started_date` | `string \| null` | Date of the first Jira changelog status transition to `In Progress` for the test-phase Epic |
 | `release_cycle_metrics.phases[].days_to_test_started` | `number \| null` | Working days from `build_ready_date` to `test_started_date` |

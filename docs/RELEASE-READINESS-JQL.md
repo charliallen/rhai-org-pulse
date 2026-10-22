@@ -78,10 +78,10 @@ and Product Pages/YAML have no usable date. For RC1, the extractor checks:
 2. If that date is missing or outside those limits, check the Epic whose
    summary contains `Prepare RC1`, using the same date rule.
 
-Repeat the same order for every RC found, including RC3. If neither Jira date
-qualifies, Jira supplies no Build Received date. The extractor does not
-substitute a test Epic's status or completion date, or a build Epic's `updated`
-date.
+Repeat the same order for every RC number found, including RC4 and higher RCs.
+If neither Jira date qualifies, Jira supplies no Build Received date. The
+extractor does not substitute a test Epic's status or completion date, or a
+build Epic's `updated` date.
 
 TFA milestones:
 
