@@ -4618,7 +4618,7 @@ async function renderScheduleStrip(){
   // Try to fetch from Product Pages; fall back to hardcoded dates
   let timelineMilestones=await fetchTimelineMilestones();
 
-  const milestones=timelineMilestones || [
+  let milestones=timelineMilestones || [
     // Fallback: hardcoded dates (used if Product Pages API is unavailable)
     // 3.6 — upcoming only (past milestones removed per Sarah Finn Sep 16)
     {lbl:'RHOAI EA2 Code Freeze',date:'2026-09-18'},
@@ -4638,6 +4638,8 @@ async function renderScheduleStrip(){
     // 3.8
     {lbl:'3.8 GA Summit',date:'2027-05-27',sep38:true},
   ];
+  // Sort chronologically by date (critical for both API and fallback data)
+  milestones.sort((a, b) => new Date(a.date) - new Date(b.date));
   const fmt=d=>{const mo=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return mo[d.getMonth()]+' '+d.getDate();};
   strip.innerHTML=milestones.map((m,i)=>{
     const dt=new Date(m.date);
