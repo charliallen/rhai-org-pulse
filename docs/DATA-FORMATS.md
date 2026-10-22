@@ -3086,6 +3086,10 @@ Produced by `fetch_release_metrics.py` in `rhods-qe-tools`. Pushed to the app
 via `POST /api/modules/releases/release-readiness/upload`. Keyed by sanitized
 version string (spaces and special chars replaced with `_`).
 
+The sample uses `rhoai-3.5.EA2`. The extractor produces this schema for every
+release version it processes and selects Build Received independently for each
+RC phase it finds.
+
 ```json
 {
   "version": "rhoai-3.5.EA2",

@@ -5,6 +5,10 @@
 The diagram shows how `phases[].build_ready_date` is selected for each RC
 number found by the extractor when its Jira test Epic is present.
 
+The selection logic applies to every release version processed by the
+extractor, independently for each RC phase it finds. The `rhoai-3.5.EA2`
+references below are examples only.
+
 ![Build Received source order for every RC number found: manual override, Stage Promoter, Product Pages, then Jira if earlier sources have no usable date. For each RC, try the Resolution Date of a linked build Epic whose summary has that RC number and Push to Stage; if unusable, try the same RC's Prepare Epic.](assets/rc-build-date-source.svg)
 
 ## Source conventions
@@ -12,7 +16,7 @@ number found by the extractor when its Jira test Epic is present.
 - `RELEASE_VERSION` is the canonical release name, for example `rhoai-3.5.EA2`.
 - `JIRA_VERSIONS` may provide exact Jira version names. Otherwise the extractor
   derives candidates and validates them against the `RHOAIENG` project.
-- For EA2, the version clause is:
+- Example: the EA2 version clause for `rhoai-3.5.EA2` is:
 
   ```jql
   (fixVersion IN ('rhoai-3.5.EA2', '3.5 EA2 RHOAI RELEASE')
@@ -26,6 +30,10 @@ number found by the extractor when its Jira test Epic is present.
   values belong in this document.
 
 ## Product Pages REST queries
+
+The examples use `rhoai-3.5.EA2`. For other releases, the extractor derives
+the Product Pages label and, when the corresponding file exists, the checked-in
+YAML fallback path from `RELEASE_VERSION`.
 
 The Product Pages client performs these calls:
 
@@ -56,21 +64,23 @@ The Product Pages client performs these calls:
   Authorization: Bearer <access token>
   ```
 
-  The extractor derives the label `3.5 EA2` from `rhoai-3.5.EA2`, then scans
+  For this example, the extractor derives the label `3.5 EA2` from
+  `rhoai-3.5.EA2`, then scans
   task `name`, `flags`, `date_start`, and `date_finish`:
 
-  - GA: task name contains `3.5 EA2`, flag `ga`, and `RHOAI`; fallback name
-    contains `3.5 EA2` and `RHOAI RELEASE`.
-  - Code freeze: name contains `3.5 EA2 RHOAI Code Freeze`; fallbacks are
-    `RHOAI Feature Freeze`, then `AIPCC Code Freeze`.
-  - RC1 build: name contains `3.5 EA2` and `RC1`.
-  - RC2 build: name contains `3.5 EA2` and `RC2`.
+  - GA: task name contains the derived release label, flag `ga`, and `RHOAI`;
+    fallback name contains the label and `RHOAI RELEASE`.
+  - Code freeze: name contains the derived release label and `RHOAI Code Freeze`;
+    fallbacks are `RHOAI Feature Freeze`, then `AIPCC Code Freeze`.
+  - RC build: the release-cycle matcher uses the RC number from each Jira phase
+    to find the matching Product Pages build task for that release.
 
   The selected date is the later of `date_start` and `date_finish`; if only one
   exists, that one is used.
 
 - If Product Pages is unavailable or has no code-freeze date, code freeze falls
-  back to `jira/jira-release-variables-3.5.0-ea2.yaml`, reading
+  back to the YAML file derived from the release version. For this example it
+  is `jira/jira-release-variables-3.5.0-ea2.yaml`, which provides
   `code_freeze_date`.
 
 ## Executed Jira JQL

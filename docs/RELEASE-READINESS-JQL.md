@@ -4,7 +4,7 @@ Temporary reference for `jira/release-readiness/fetch_release_metrics.py`.
 
 ## Shared release version clause
 
-For `rhoai-3.5.EA2`, the validated Jira version clause is:
+Example: the validated Jira version clause for `rhoai-3.5.EA2` is:
 
 ```jql
 (fixVersion IN ('rhoai-3.5.EA2', '3.5 EA2 RHOAI RELEASE')
@@ -15,6 +15,10 @@ For `rhoai-3.5.EA2`, the validated Jira version clause is:
 The script uses values from `JIRA_VERSIONS` when configured; otherwise it derives and validates version variants against the `RHOAIENG` project.
 
 ## Release Cycle Metrics
+
+The Build Received source order applies to every release version processed by
+the extractor, independently for each RC phase it finds. The 3.5 EA2 values in
+the JQL examples are sample version values; they do not limit the rule to 3.5.
 
 | Value | Source |
 | --- | --- |
