@@ -268,7 +268,7 @@ The Product Pages client performs these calls:
   `red-hat-data-services/rhods-devops-infra`'s `stage-promoter.yaml` GitHub
   Actions workflow. The extractor matches release/build type from the successful
   `show-info` job log and uses the run completion date. For each RC it selects
-  the latest matching date after the known lower bound—Code Freeze for RC1, or
+  the latest matching date on or after the known lower bound—Code Freeze for RC1, or
   the latest earlier RC's Test Started date for later RCs—and on or before that
   RC's Test Started date. If no lower bound is known, only the Test Started
   upper bound applies. It skips this source when `GITHUB_TOKEN`/`GH_TOKEN` is
