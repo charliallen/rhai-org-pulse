@@ -319,6 +319,9 @@ module.exports = function registerAIPlannerRoutes(router, context) {
         ];
       }
 
+      // Sort milestones chronologically by date
+      milestones.sort((a, b) => new Date(a.date) - new Date(b.date));
+
       res.json({
         milestones: milestones,
         source: source,
