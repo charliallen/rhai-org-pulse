@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1480" viewBox="0 0 1400 1480" role="img" aria-labelledby="title desc">
   <title id="title">RC1 and RC2 Build Received date source order</title>
-  <desc id="desc">Try the manual override, a successful matching Stage Promoter RC run, Product Pages with checked-in release-variable YAML filling missing milestones, then Jira build-helper Epic resolution dates. Skip invalid dates and try the next source. Return null if no valid date is available.</desc>
+  <desc id="desc">Try the manual override, a successful matching Stage Promoter RC run, Product Pages with checked-in release-variable YAML filling missing milestones, then the RC build Epics in Jira. For each RC, try the Push to Stage Epic resolution date first, then the Prepare Epic if the first date is missing or outside the valid date window. Skip invalid dates and return null if no valid date is available.</desc>
   <defs>
     <marker id="arrow" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
       <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b" />
@@ -69,10 +69,10 @@
     <rect x="100" y="840" width="1200" height="220" rx="16" fill="#ffffff" stroke="#fcd34d" stroke-width="2" />
     <circle cx="150" cy="890" r="26" fill="#fef3c7" />
     <text x="150" y="897" text-anchor="middle" class="step" fill="#b45309">4</text>
-    <text x="195" y="883" class="step" fill="#b45309">JIRA BUILD-HELPER FALLBACK</text>
-    <text x="195" y="924" class="title">RC build Epic <tspan font-family="monospace">resolutiondate</tspan></text>
-    <text x="195" y="963" class="body">Try <tspan font-family="monospace">RCn Push to Stage</tspan> before <tspan font-family="monospace">Prepare RCn</tspan>.</text>
-    <text x="195" y="992" class="body">Test Epic transitions/completions and build Epic <tspan font-family="monospace">updated</tspan> are not candidates.</text>
+    <text x="195" y="883" class="step" fill="#b45309">LAST JIRA FALLBACK</text>
+    <text x="195" y="924" class="title">Read the RC build Epic's <tspan font-family="monospace">resolutiondate</tspan></text>
+    <text x="195" y="963" class="body">For RC1, try <tspan font-family="monospace">RC1 Push to Stage</tspan> first; if missing or invalid, use <tspan font-family="monospace">Prepare RC1</tspan>.</text>
+    <text x="195" y="992" class="body">Use the same order for RC2. Testing Epic dates and build Epic <tspan font-family="monospace">updated</tspan> are not used.</text>
     <rect x="1040" y="881" width="220" height="42" rx="21" fill="#dcfce7" />
     <text x="1150" y="908" text-anchor="middle" class="result">DATE FOUND → use it</text>
   </g>
