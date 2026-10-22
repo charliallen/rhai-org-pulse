@@ -9,7 +9,7 @@ The selection logic applies to every release version processed by the
 extractor, independently for each RC phase it finds. The `rhoai-3.5.EA2`
 references below are examples only.
 
-![Build Received source order for every release and RC found: manual override, Stage Promoter, Product Pages with YAML filling missing fields, then Jira. Match the number in the dashboard phase to the number in the Jira Epic summary: RC1 phase to RC1 Epic, RC2 phase to RC2 Epic. Jira reads the Push to Stage Epic's resolutiondate first, then the Prepare Epic's resolutiondate if needed. Test Started is a separate first In Progress transition on the matching Builds Testing Epic.](assets/rc-build-date-source.svg)
+![Build Received source order for every release and RC found: manual override, Stage Promoter, Product Pages with YAML filling missing fields, then Jira. Let n be the RC number in the dashboard phase; match Jira build Epic summaries containing RCn. Read resolutiondate from the Push to Stage Epic whose summary contains RCn, then try the Prepare Epic whose summary contains RCn if needed. Test Started comes from the RCn Builds Testing Epic's first In Progress transition.](assets/rc-build-date-source.svg)
 
 ## Source conventions
 
@@ -258,20 +258,19 @@ The Product Pages client performs these calls:
 - Requests `summary`, `status`, `updated`, `resolutiondate`, and `issuetype`,
   and expands each Epic's status-transition history.
 - The query returns Epics under the release initiative. The summary identifies
-  the RC number and whether an Epic is a build Epic or an `RCn Builds Testing`
-  Epic.
+  each Epic's RC number and whether it is for building or testing. For a
+  dashboard phase with RC number `n`, match summaries containing `RCn`.
 - Build Received is checked in Jira only after the override, Stage Promoter,
-  and Product Pages/YAML have no usable date. The RC number in the dashboard
-  phase must match the number in the Epic summary (for example, RC1 phase →
-  Epic summary containing RC1). Read `resolutiondate` from the matching
-  `push to stage` build Epic first, then from the matching `prepare` build Epic
-  if the first date is missing or outside the known Code Freeze/Test Started
-  bounds. If neither date qualifies, Jira supplies no Build Received date. A
-  build Epic's `updated` date is not used.
+  and Product Pages/YAML have no usable date. Read `resolutiondate` from the
+  `Push to Stage` build Epic whose summary contains `RCn` first, then from the
+  `Prepare` build Epic whose summary contains `RCn` if the first date is missing
+  or outside the known Code Freeze/Test Started bounds. If neither date
+  qualifies, Jira supplies no Build Received date. A build Epic's `updated`
+  date is not used.
 - Test Started is the first changelog transition to `In Progress` on the
-  `RCn Builds Testing` Epic. Test Finished uses that Epic's `resolutiondate`,
-  falling back to `updated` only when the test Epic is Done. These test dates
-  are separate from Build Received.
+  `Builds Testing` Epic whose summary contains `RCn`. Test Finished uses that
+  Epic's `resolutiondate`, falling back to `updated` only when the test Epic is
+  Done. These dates are separate from Build Received.
 - Candidate Build Received dates before Code Freeze or after Test Started are
   skipped so the next source can be tried. If no candidate is available and
   valid, the value is `null`.

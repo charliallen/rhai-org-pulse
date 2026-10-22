@@ -73,19 +73,18 @@ extractor reads its `summary`, `status`, `resolutiondate`, `updated`, and
 `issuetype`, plus status-transition history. The summary identifies the RC
 number and whether the Epic is for building or testing.
 
-The RC number in the dashboard phase must match the RC number in a Jira Epic's
-summary. For example, an RC1 dashboard phase uses Epics whose summaries contain
-RC1; an RC2 phase uses Epics whose summaries contain RC2.
+Let `n` be the RC number in the dashboard phase. Match Jira build Epic summaries
+containing `RCn`.
 
 For each RC, Jira contributes these dates:
 
 - **Build Received fallback:** only if the earlier sources have no usable date,
   use the `resolutiondate` of the `Push to Stage` Epic whose summary contains
-  that RC number. If it is missing or outside the Code Freeze/Test Started
-  bounds, try the `Prepare` Epic whose summary contains the same number. If
-  neither qualifies, Jira gives no Build Received date.
-- **Test Started:** the first transition to `In Progress` on that RC's
-  `Builds Testing` Epic.
+  `RCn`. If that date is missing or outside the Code Freeze/Test Started
+  bounds, try the `Prepare` Epic whose summary contains `RCn`. If neither
+  qualifies, Jira gives no Build Received date.
+- **Test Started:** the first transition to `In Progress` on the `Builds
+  Testing` Epic whose summary contains `RCn`.
 - **Test Finished:** that testing Epic's `resolutiondate`; use `updated` only
   if the Epic is Done and has no resolution date.
 
