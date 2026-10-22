@@ -23,7 +23,7 @@ the JQL examples are sample version values; they do not limit the rule to 3.5.
 | Value | Source |
 | --- | --- |
 | Code Freeze | Product Pages API; the checked-in release-variable YAML fills the field when Product Pages has no value. No JQL. |
-| Build Received for each RC found | Manual override → Stage Promoter → Product Pages/YAML → Jira fallback (the matching RC's `Push to Stage` Epic, then `Prepare` Epic) → `null`; Jira uses each Epic's `resolutiondate`. |
+| Build Received for each RC found | Manual override → Stage Promoter → Product Pages/YAML → Jira fallback (match the RC number in the phase to the Epic summary; try `Push to Stage`, then `Prepare`) → `null`; Jira reads each candidate Epic's `resolutiondate`. |
 | Test Started | Same release-phase Epic query; first Jira changelog transition to `In Progress` on the test Epic. |
 | Test Finished | Same query; test Epic `resolutiondate`, falling back to `updated` only when that test Epic is Done. |
 | TFAs Passed | TFA query below; latest `updated` when every task is In Progress or Done. |
@@ -73,13 +73,17 @@ extractor reads its `summary`, `status`, `resolutiondate`, `updated`, and
 `issuetype`, plus status-transition history. The summary identifies the RC
 number and whether the Epic is for building or testing.
 
+The RC number in the dashboard phase must match the RC number in a Jira Epic's
+summary. For example, an RC1 dashboard phase uses Epics whose summaries contain
+RC1; an RC2 phase uses Epics whose summaries contain RC2.
+
 For each RC, Jira contributes these dates:
 
 - **Build Received fallback:** only if the earlier sources have no usable date,
-  use the `resolutiondate` of that RC's `Push to Stage` Epic. If it is missing
-  or outside the Code Freeze/Test Started bounds, try the same RC's `Prepare`
-  Epic `resolutiondate`. If neither qualifies, Jira gives no Build Received
-  date.
+  use the `resolutiondate` of the `Push to Stage` Epic whose summary contains
+  that RC number. If it is missing or outside the Code Freeze/Test Started
+  bounds, try the `Prepare` Epic whose summary contains the same number. If
+  neither qualifies, Jira gives no Build Received date.
 - **Test Started:** the first transition to `In Progress` on that RC's
   `Builds Testing` Epic.
 - **Test Finished:** that testing Epic's `resolutiondate`; use `updated` only

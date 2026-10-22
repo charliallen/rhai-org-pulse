@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1480" viewBox="0 0 1400 1480" role="img" aria-labelledby="title desc">
-  <title id="title">Build Received date source order for each RC found</title>
-  <desc id="desc">Use the same Build Received source order for every release and every RC phase found. Try manual override, a successful matching Stage Promoter RC run, and the Product Pages schedule, with checked-in release-variable YAML filling missing milestones. If those sources give no valid date, Jira reads the resolutiondate from that RC's Push to Stage build Epic; if missing or outside the date bounds, it tries the same RC's Prepare build Epic resolutiondate. Test Started comes separately from the first In Progress transition on the Builds Testing Epic. Return null if no source gives a valid date.</desc>
+  <title id="title">Build Received date source order for every release and RC phase</title>
+  <desc id="desc">Use the same Build Received source order for every release and every RC phase found. Try manual override, a successful matching Stage Promoter RC run, and the Product Pages schedule, with checked-in release-variable YAML filling missing milestones. If those sources give no valid date, match the RC number in the dashboard phase to the RC number in the Jira Epic summary: dashboard RC1 uses an Epic summary containing RC1; dashboard RC2 uses an Epic summary containing RC2. Read resolutiondate from the matching Push to Stage build Epic; if missing or outside the date bounds, read resolutiondate from the matching Prepare build Epic. Test Started comes separately from the Builds Testing Epic's first In Progress transition. Return null if no source gives a valid date.</desc>
   <defs>
     <marker id="arrow" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
       <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b" />
@@ -18,7 +18,7 @@
   </defs>
 
   <rect width="1400" height="1480" rx="20" fill="#f8fafc" />
-  <text x="700" y="62" text-anchor="middle" class="heading">Same Build Received rules for every release and RC found</text>
+  <text x="700" y="62" text-anchor="middle" class="heading">Build Received sources for every release and RC phase</text>
   <text x="700" y="98" text-anchor="middle" class="subheading">Source order for <tspan font-family="monospace">phases[].build_ready_date</tspan></text>
 
   <g>
@@ -70,10 +70,10 @@
     <circle cx="150" cy="890" r="26" fill="#fef3c7" />
     <text x="150" y="897" text-anchor="middle" class="step" fill="#b45309">4</text>
     <text x="195" y="883" class="step" fill="#b45309">JIRA: CHECK THIS ONLY IF STEPS 1–3 HAVE NO VALID DATE</text>
-    <text x="195" y="924" class="title">Use Jira <tspan font-family="monospace">resolutiondate</tspan> in this order</text>
-    <text x="195" y="963" class="body">1. Same-RC <tspan font-family="monospace">Push to Stage</tspan> build Epic under the release initiative.</text>
-    <text x="195" y="992" class="body">2. If missing or outside bounds, same-RC <tspan font-family="monospace">Prepare</tspan> build Epic.</text>
-    <text x="195" y="1021" class="body">Test Epic is separate: its first <tspan font-family="monospace">In Progress</tspan> transition gives Test Started.</text>
+    <text x="195" y="924" class="title">Match the phase RC number to the Jira Epic summary</text>
+    <text x="195" y="963" class="body">RC1 phase → RC1 Push to Stage Epic; if unusable, RC1 Prepare Epic.</text>
+    <text x="195" y="992" class="body">RC2 phase → RC2 Push to Stage Epic; if unusable, RC2 Prepare Epic.</text>
+    <text x="195" y="1021" class="body">Read <tspan font-family="monospace">resolutiondate</tspan> from the selected Epic.</text>
     <rect x="1040" y="881" width="220" height="42" rx="21" fill="#dcfce7" />
     <text x="1150" y="908" text-anchor="middle" class="result">DATE FOUND → use it</text>
   </g>
@@ -91,5 +91,5 @@
   <rect x="100" y="1280" width="1200" height="115" rx="16" fill="#eff6ff" stroke="#bfdbfe" stroke-width="2" />
   <text x="140" y="1325" class="step">DATE VALIDATION</text>
   <text x="140" y="1361" class="body">Skip Build Received candidates before known Code Freeze or after known Test Started; try the next source.</text>
-  <text x="140" y="1388" class="body">The testing Epic supplies Test Started only; it does not supply Build Received.</text>
+  <text x="140" y="1388" class="body">Test Started: RC1 uses RC1 Builds Testing; RC2 uses RC2 Builds Testing, each Epic's first In Progress transition.</text>
 </svg>

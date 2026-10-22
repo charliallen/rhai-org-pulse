@@ -9,7 +9,7 @@ The selection logic applies to every release version processed by the
 extractor, independently for each RC phase it finds. The `rhoai-3.5.EA2`
 references below are examples only.
 
-![Build Received source order for every release and RC found: manual override, Stage Promoter, Product Pages with YAML filling missing fields, then Jira. For each RC, Jira uses the same-RC Push to Stage build Epic's resolutiondate; if missing or outside the date bounds, it tries the same-RC Prepare build Epic's resolutiondate. Test Started comes separately from the first In Progress transition on the Builds Testing Epic.](assets/rc-build-date-source.svg)
+![Build Received source order for every release and RC found: manual override, Stage Promoter, Product Pages with YAML filling missing fields, then Jira. Match the number in the dashboard phase to the number in the Jira Epic summary: RC1 phase to RC1 Epic, RC2 phase to RC2 Epic. Jira reads the Push to Stage Epic's resolutiondate first, then the Prepare Epic's resolutiondate if needed. Test Started is a separate first In Progress transition on the matching Builds Testing Epic.](assets/rc-build-date-source.svg)
 
 ## Source conventions
 
@@ -236,7 +236,7 @@ The Product Pages client performs these calls:
 | Displayed value | Source and fallback |
 | --- | --- |
 | Code Freeze | Product Pages schedule; the checked-in release-variable YAML fills the field when Product Pages has no value. |
-| Build Received for each RC found (`phases[].build_ready_date`) | Manual override → Stage Promoter → Product Pages/YAML → Jira fallback: same-RC `Push to Stage` Epic `resolutiondate`, then same-RC `Prepare` Epic `resolutiondate` → `null`. |
+| Build Received for each RC found (`phases[].build_ready_date`) | Manual override → Stage Promoter → Product Pages/YAML → Jira fallback: match the RC number in the phase to the number in the Epic summary; use the `Push to Stage` Epic `resolutiondate`, then the matching `Prepare` Epic `resolutiondate` → `null`. |
 | Test Started | First Jira changelog transition to `In Progress` on the test-phase Epic. |
 | Test Finished | Jira test-phase Epic `resolutiondate`; `updated` only if the Epic is Done and has no resolution date. |
 | TFAs Passed | Latest TFA task `updated` date once every task is In Progress or Done. |
@@ -261,11 +261,13 @@ The Product Pages client performs these calls:
   the RC number and whether an Epic is a build Epic or an `RCn Builds Testing`
   Epic.
 - Build Received is checked in Jira only after the override, Stage Promoter,
-  and Product Pages/YAML have no usable date. For that RC, the Jira fallback
-  reads `resolutiondate` from its `push to stage` build Epic, then from its
-  `prepare` build Epic if the first date is missing or outside the known
-  Code Freeze/Test Started bounds. If neither date qualifies, Jira supplies no
-  Build Received date. A build Epic's `updated` date is not used.
+  and Product Pages/YAML have no usable date. The RC number in the dashboard
+  phase must match the number in the Epic summary (for example, RC1 phase →
+  Epic summary containing RC1). Read `resolutiondate` from the matching
+  `push to stage` build Epic first, then from the matching `prepare` build Epic
+  if the first date is missing or outside the known Code Freeze/Test Started
+  bounds. If neither date qualifies, Jira supplies no Build Received date. A
+  build Epic's `updated` date is not used.
 - Test Started is the first changelog transition to `In Progress` on the
   `RCn Builds Testing` Epic. Test Finished uses that Epic's `resolutiondate`,
   falling back to `updated` only when the test Epic is Done. These test dates
@@ -463,10 +465,11 @@ executed during extraction.
     working-day counts,
     test start/finish, TFA milestones, and blocker resolution.
   - Build-date source order: optional `ACTUAL_BUILD_DATES` override, Stage
-    Promoter, Product Pages/YAML, then Jira as a last fallback. For each RC,
-    Jira tries the matching `push to stage` Epic's `resolutiondate`, then the
-    matching `prepare` Epic's `resolutiondate`. Candidates outside known
-    Code Freeze/Test Started bounds are skipped.
+    Promoter, Product Pages/YAML, then Jira as a last fallback. Jira matches
+    the RC number in the phase to the number in the Epic summary, then tries
+    `push to stage` before `prepare`. It reads the selected Epic's
+    `resolutiondate`; candidates outside known Code Freeze/Test Started bounds
+    are skipped.
     Other dates come from the Product Pages code-freeze schedule or checked-in
     YAML fallback and Jira test-phase/TFA/blocker queries; working-day counts
     are calculated locally.

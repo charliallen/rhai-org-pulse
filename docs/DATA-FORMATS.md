@@ -3184,7 +3184,7 @@ RC phase it finds.
 **Notes:**
 - All day counts use Mon–Fri only (no public holidays excluded).
 - `ACTUAL_BUILD_DATES` is an optional JSON environment variable keyed by release and phase. If it is unset or empty, the manual-override source is skipped.
-- Build Received dates must be on or after Code Freeze and on or before Test Started, when those bounds are known. Jira is a last fallback after the override, Stage Promoter, and Product Pages/YAML. It tries the same-RC `push to stage` Epic's `resolutiondate`, then the same-RC `prepare` Epic's `resolutiondate`; see the [Jira source details](RELEASE-READINESS-JQL.md#release-cycle-metrics). The testing Epic supplies test dates only.
+- Build Received dates must be on or after Code Freeze and on or before Test Started, when those bounds are known. Jira is a last fallback after the override, Stage Promoter, and Product Pages/YAML. It matches the RC number in the phase to the number in the Epic summary (RC1 phase → RC1 Epic), then tries the `push to stage` Epic's `resolutiondate` before the `prepare` Epic's `resolutiondate`; see the [Jira source details](RELEASE-READINESS-JQL.md#release-cycle-metrics). The testing Epic supplies test dates only.
 - Test Started uses the first recorded test-Epic changelog transition to `In Progress`; Test Finished uses that Epic's `resolutiondate`, falling back to `updated` only when it is Done. These are Jira-recorded dates, not necessarily the exact time the build was physically received or testing began.
 - The TFA and blocker dates are release-level (not per-RC); the same date appears in each phase with different `days_to_*` values.
 - `null` means the milestone has not occurred or data is unavailable; the dashboard renders `—` for null.
