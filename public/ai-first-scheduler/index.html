@@ -4610,19 +4610,18 @@ async function fetchTimelineMilestones(){
     const milestones=[];
 
     // Extract milestones from registry for 3.6
+    // Registry milestone keys: ga, codeFreeze, featureFreeze, planningFreeze (plain date strings)
     if(rel36.milestones && typeof rel36.milestones==='object'){
       const m36=rel36.milestones;
-      if(m36.gaRelease) milestones.push({lbl:'3.6 GA Release',date:m36.gaRelease.date||m36.gaRelease,badge:'Informational launch',badgeColor:'#2e7d32'});
-      if(m36.codeFreeze) milestones.push({lbl:'RHOAI 3.6 GA Code Freeze',date:m36.codeFreeze.date||m36.codeFreeze});
+      if(m36.ga) milestones.push({lbl:'3.6 GA Release',date:m36.ga,badge:'Informational launch',badgeColor:'#2e7d32'});
+      if(m36.codeFreeze) milestones.push({lbl:'RHOAI 3.6 GA Code Freeze',date:m36.codeFreeze});
     }
 
     // Extract milestones from registry for 3.7
     if(rel37.milestones && typeof rel37.milestones==='object'){
       const m37=rel37.milestones;
-      if(m37.planning) milestones.push({lbl:'3.7 Planning',date:m37.planning.date||m37.planning,sep:true});
-      if(m37.planningFreeze) milestones.push({lbl:'RHAI Planning Freeze',date:m37.planningFreeze.date||m37.planningFreeze,badge:'Mandatory from here',badgeColor:'#c62828'});
-      if(m37.eaRelease) milestones.push({lbl:'3.7 EA Release',date:m37.eaRelease.date||m37.eaRelease});
-      if(m37.gaRelease) milestones.push({lbl:'3.7 GA Release',date:m37.gaRelease.date||m37.gaRelease});
+      if(m37.planningFreeze) milestones.push({lbl:'RHAI Planning Freeze',date:m37.planningFreeze,badge:'Mandatory from here',badgeColor:'#c62828'});
+      if(m37.ga) milestones.push({lbl:'3.7 GA Release',date:m37.ga});
     }
 
     return milestones.length>0?milestones:null;
