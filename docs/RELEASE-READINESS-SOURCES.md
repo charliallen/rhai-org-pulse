@@ -226,7 +226,7 @@ The Product Pages client performs these calls:
 | Displayed value | Source and fallback |
 | --- | --- |
 | Code Freeze | Product Pages schedule; the checked-in release-variable YAML fills the field when Product Pages has no value. |
-| RC1/RC2 Build Received (`phases[].build_ready_date`) | Optional `ACTUAL_BUILD_DATES` override → successful matching Stage Promoter RC run → matching Product Pages RC task (checked-in release-variable YAML fills a missing schedule field) → Jira issue Resolution Date: `RCn Push to Stage` first, then `Prepare RCn` if its date is missing, before Code Freeze, or after Test Started → `null`. |
+| RC1/RC2 Build Received (`phases[].build_ready_date`) | Manual override → Stage Promoter → Product Pages schedule (checked-in YAML fills missing fields) → if those have no usable date, Jira: `RCn Push to Stage` resolved date, then `Prepare RCn` if needed → `null`. |
 | Test Started | First Jira changelog transition to `In Progress` on the test-phase Epic. |
 | Test Finished | Jira test-phase Epic `resolutiondate`; `updated` only if the Epic is Done and has no resolution date. |
 | TFAs Passed | Latest TFA task `updated` date once every task is In Progress or Done. |
@@ -252,16 +252,15 @@ The Product Pages client performs these calls:
   into Nightly, RC1, RC2, or RC3 and identifies build Epics versus test Epics.
 - Test start uses the earliest Jira changelog status transition to `In Progress`.
   Test completion uses `resolutiondate`, falling back to `updated` only when the
-  test Epic is Done. Build Received uses separate sources: the optional manual
-  override, successful matching Stage Promoter RC completion, Product Pages
-  schedule (filled by checked-in release-variable YAML when a schedule field is
-  missing), then the Jira issue Resolution Date if those earlier sources have
-  no valid date. For RC1, the extractor reads the `resolutiondate` field on the
-  `RC1 Push to Stage` Epic first; if empty, before Code Freeze, or after Test
-  Started, it checks `Prepare RC1`. It repeats this order for each RC. If
-  neither build Epic has a date within the known bounds, Jira provides no date.
-  Test Epic transition/completion dates and a build Epic's `updated` date are
-  not Build Received sources.
+  test Epic is Done. Build Received first checks the manual override, Stage
+  Promoter, and Product Pages schedule (with checked-in YAML filling missing
+  schedule fields). Jira is checked only if those sources have no usable date.
+  For RC1, the extractor checks the issue whose summary contains `RC1 Push to
+  Stage`, then `Prepare RC1` if the first date is missing or outside the rule:
+  on or after Code Freeze and on or before Test Started, when those dates are
+  known. RC2 uses the same order. The `RCn Builds Testing` issue gives test
+  dates only. If neither build issue qualifies, Jira provides no Build Received
+  date; the extractor does not use a build issue's `updated` date instead.
 - Candidate Build Received dates before Code Freeze or after Test Started are
   skipped so the next source can be tried. If no candidate is available and
   valid, the value is `null`.

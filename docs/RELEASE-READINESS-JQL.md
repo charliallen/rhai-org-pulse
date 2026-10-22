@@ -19,7 +19,7 @@ The script uses values from `JIRA_VERSIONS` when configured; otherwise it derive
 | Value | Source |
 | --- | --- |
 | Code Freeze | Product Pages API; the checked-in release-variable YAML fills the field when Product Pages has no value. No JQL. |
-| RC1/RC2 Build Received | Optional `ACTUAL_BUILD_DATES` override → successful matching Stage Promoter RC run → matching Product Pages RC task (with checked-in release-variable YAML filling a missing schedule field) → Jira issue Resolution Date: `RCn Push to Stage` first, then `Prepare RCn` if its date is missing, before Code Freeze, or after Test Started → `null`. |
+| RC1/RC2 Build Received | Manual override → Stage Promoter → Product Pages schedule (checked-in YAML fills missing fields) → if those have no usable date, Jira: `RCn Push to Stage` resolved date, then `Prepare RCn` if needed → `null`. |
 | Test Started | Same release-phase Epic query; first Jira changelog transition to `In Progress` on the test Epic. |
 | Test Finished | Same query; test Epic `resolutiondate`, falling back to `updated` only when that test Epic is Done. |
 | TFAs Passed | TFA query below; latest `updated` when every task is In Progress or Done. |
@@ -64,16 +64,23 @@ Release initiative Epics (test dates and RC Build Received dates):
 AND issuetype = Epic
 ```
 
-This query returns the Epics under the release initiative. The extractor gets
-Test Started and Test Finished from each `RCn Builds Testing` Epic. It gets a
-Build Received date from these Jira results only if the earlier sources have
-no valid date. For RC1, it reads the `resolutiondate` field (the date Jira
-recorded for resolving the issue) on the `RC1 Push to Stage` Epic first. If
-that field is empty, or the date is before Code Freeze or after Test Started,
-it checks the `Prepare RC1` Epic's `resolutiondate`. It repeats this order for
-each RC. If neither build Epic has a date within the known bounds, Jira
-provides no Build Received date. Test Epic transitions/completions and a build
-Epic's `updated` date are not used for Build Received.
+This query returns all Epics under the release initiative. The extractor gets
+Test Started and Test Finished from the `RCn Builds Testing` Epics; those test
+dates never supply Build Received.
+
+For Build Received, Jira is checked only when the override, Stage Promoter,
+and Product Pages/YAML have no usable date. For RC1, the extractor checks:
+
+1. The Jira Epic whose summary contains `RC1 Push to Stage`. Use its
+   `resolutiondate` (the date Jira recorded for resolving the issue) if it is
+   on or after Code Freeze and on or before Test Started, when those dates are
+   known.
+2. If that date is missing or outside those limits, check the Epic whose
+   summary contains `Prepare RC1`, using the same date rule.
+
+Repeat the same order for RC2. If neither Jira date qualifies, Jira supplies no
+Build Received date. The extractor does not substitute a test Epic's status or
+completion date, or a build Epic's `updated` date.
 
 TFA milestones:
 
