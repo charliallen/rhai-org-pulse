@@ -19,7 +19,7 @@ The script uses values from `JIRA_VERSIONS` when configured; otherwise it derive
 | Value | Source |
 | --- | --- |
 | Code Freeze | Product Pages API; the checked-in release-variable YAML fills the field when Product Pages has no value. No JQL. |
-| Build Received for each RC found | Manual override → Stage Promoter → Product Pages schedule (checked-in YAML fills missing fields) → if those have no usable date, Jira: `RCn Push to Stage` resolved date, then `Prepare RCn` if needed → `null`. |
+| Build Received for each RC found | Manual override → Stage Promoter → Product Pages schedule (checked-in YAML fills missing fields) → if those have no usable date, try a linked Jira build Epic whose summary has that RC number and `Push to Stage`; use its Resolution Date. If unusable, try the same RC's `Prepare` Epic → `null`. |
 | Test Started | Same release-phase Epic query; first Jira changelog transition to `In Progress` on the test Epic. |
 | Test Finished | Same query; test Epic `resolutiondate`, falling back to `updated` only when that test Epic is Done. |
 | TFAs Passed | TFA query below; latest `updated` when every task is In Progress or Done. |
@@ -69,16 +69,18 @@ Test Started and Test Finished from the `RCn Builds Testing` Epics; those test
 dates never supply Build Received.
 
 For Build Received, Jira is checked only when the override, Stage Promoter,
-and Product Pages/YAML have no usable date. For RC1, the extractor checks:
+and Product Pages/YAML have no usable date. For example, for RC1 the extractor
+checks these Jira Epics:
 
-1. The Jira Epic whose summary contains `RC1 Push to Stage`. Use its
-   `resolutiondate` (the date Jira recorded for resolving the issue) if it is
+1. The linked Jira build Epic whose summary has `RC1` and `Push to Stage`. Use
+   its `resolutiondate` (the date Jira recorded for resolving the Epic) if it is
    on or after Code Freeze and on or before Test Started, when those dates are
    known.
-2. If that date is missing or outside those limits, check the Epic whose
-   summary contains `Prepare RC1`, using the same date rule.
+2. If that date is missing or outside those limits, check the linked build
+   Epic whose summary has `RC1` and `Prepare`, using the same date rule.
 
-Repeat the same order for every RC number found.
+The same lookup is done for every RC number found, replacing `RC1` with that
+RC's number.
 If neither Jira date qualifies, Jira supplies no Build Received date. The
 extractor does not substitute a test Epic's status or completion date, or a
 build Epic's `updated` date.
