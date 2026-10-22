@@ -3090,6 +3090,11 @@ The sample uses `rhoai-3.5.EA2`. The extractor produces this schema for every
 release version it processes and selects Build Received independently for each
 RC phase it finds.
 
+`release_schedule` has an optional `rcN_build_date` property for each numbered
+RC present in Product Pages schedule tasks or the checked-in release-variable
+YAML. `N` is the RC number; the schema is not limited to RC1 and RC2. The
+example includes RC1 and RC2 only as sample values.
+
 ```json
 {
   "version": "rhoai-3.5.EA2",
@@ -3178,13 +3183,12 @@ RC phase it finds.
 | `release_cycle_metrics.phases[].days_to_tfas_triaged` | `number \| null` | Working days from `build_ready_date` to `tfas_triaged_date` |
 | `release_cycle_metrics.phases[].blockers_resolved_date` | `string \| null` | Max `resolutiondate` across all resolved blockers; `null` if any open blockers remain |
 | `release_cycle_metrics.phases[].days_to_blockers_resolved` | `number \| null` | Working days from `build_ready_date` to `blockers_resolved_date` |
-| `release_schedule.rc1_build_date` | `string \| null` | Product Pages RC1 milestone date; filled from the checked-in release-variable YAML when Product Pages has no value |
-| `release_schedule.rc2_build_date` | `string \| null` | Product Pages RC2 milestone date; filled from the checked-in release-variable YAML when Product Pages has no value |
+| `release_schedule.rcN_build_date` | `string \| null` (optional) | Product Pages milestone date for RC `N`; the matching `rcN_build_received_date` in the checked-in release-variable YAML fills a missing value |
 
 **Notes:**
 - All day counts use Mon–Fri only (no public holidays excluded).
 - `ACTUAL_BUILD_DATES` is an optional JSON environment variable keyed by release and phase. If it is unset or empty, the manual-override source is skipped.
-- Build Received dates must be on or after Code Freeze and on or before Test Started, when those bounds are known. Jira is a last fallback after the override, Stage Promoter, and Product Pages/YAML. For a phase with RC number `n`, the Jira build Epic summary must contain `RCn`; the extractor tries the matching `push to stage` Epic's `resolutiondate` before the matching `prepare` Epic's `resolutiondate`. See the [Jira source details](RELEASE-READINESS-JQL.md#release-cycle-metrics). The testing Epic supplies test dates only.
+- Build Received candidates before a known Code Freeze are skipped. Test Started is not an upper bound: a Build Received date after Test Started can still be reported. Jira is a last fallback after the override, Stage Promoter, and Product Pages/YAML. For a phase with RC number `n`, the extractor searches Jira build-helper Epics for the matching release Fix Version and `RCn` summary, then tries the `Push to Stage` Epic's `resolutiondate` before the `Prepare` Epic's `resolutiondate`. See the [Jira source details](RELEASE-READINESS-JQL.md#release-cycle-metrics). The testing Epic supplies test dates only.
 - Test Started uses the first recorded test-Epic changelog transition to `In Progress`; Test Finished uses that Epic's `resolutiondate`, falling back to `updated` only when it is Done. These are Jira-recorded dates, not necessarily the exact time the build was physically received or testing began.
 - The TFA and blocker dates are release-level (not per-RC); the same date appears in each phase with different `days_to_*` values.
 - `null` means the milestone has not occurred or data is unavailable; the dashboard renders `—` for null.
