@@ -68,26 +68,25 @@ Release initiative Epics (test dates and RC Build Received dates):
 AND issuetype = Epic
 ```
 
-This query returns all Epics under the release initiative. The extractor gets
-Test Started and Test Finished from the `RCn Builds Testing` Epics; those test
-dates never supply Build Received.
+This query returns the release initiative's Epics. For each Epic, the
+extractor reads its `summary`, `status`, `resolutiondate`, `updated`, and
+`issuetype`, plus status-transition history. The summary identifies the RC
+number and whether the Epic is for building or testing.
 
-For Build Received, Jira is checked only when the override, Stage Promoter,
-and Product Pages/YAML have no usable date. For example, for RC1 the extractor
-checks these Jira Epics:
+For each RC, Jira contributes these dates:
 
-1. The linked Jira build Epic whose summary has `RC1` and `Push to Stage`. Use
-   its `resolutiondate` (the date Jira recorded for resolving the Epic) if it is
-   on or after Code Freeze and on or before Test Started, when those dates are
-   known.
-2. If that date is missing or outside those limits, check the linked build
-   Epic whose summary has `RC1` and `Prepare`, using the same date rule.
+- **Build Received fallback:** only if the earlier sources have no usable date,
+  use the `resolutiondate` of that RC's `Push to Stage` Epic. If it is missing
+  or outside the Code Freeze/Test Started bounds, try the same RC's `Prepare`
+  Epic `resolutiondate`. If neither qualifies, Jira gives no Build Received
+  date.
+- **Test Started:** the first transition to `In Progress` on that RC's
+  `Builds Testing` Epic.
+- **Test Finished:** that testing Epic's `resolutiondate`; use `updated` only
+  if the Epic is Done and has no resolution date.
 
-The same lookup is done for every RC number found, replacing `RC1` with that
-RC's number.
-If neither Jira date qualifies, Jira supplies no Build Received date. The
-extractor does not substitute a test Epic's status or completion date, or a
-build Epic's `updated` date.
+The testing Epic supplies Test Started and Test Finished, never Build Received.
+The extractor does not use a build Epic's `updated` date for Build Received.
 
 TFA milestones:
 
