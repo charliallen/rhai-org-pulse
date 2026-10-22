@@ -4594,17 +4594,40 @@ function toggleSummary(){
   }
 }
 
-// ── FETCH TIMELINE MILESTONES FROM PRODUCT PAGES ─────────────────────────────────
+// ── FETCH TIMELINE MILESTONES FROM RELEASES REGISTRY ─────────────────────────────────
 async function fetchTimelineMilestones(){
   try {
-    const resp=await fetch('/api/modules/releases/planning/ai-planner/timeline-milestones',{signal:AbortSignal.timeout(8000)});
-    if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const data=await resp.json();
-    if(data.source!=='product-pages' || !Array.isArray(data.milestones) || !data.milestones.length) return null;
-    return data.milestones;
+    const [res36, res37] = await Promise.all([
+      fetch('/api/modules/releases/registry/rhoai-3.6',{signal:AbortSignal.timeout(5000)}),
+      fetch('/api/modules/releases/registry/rhoai-3.7',{signal:AbortSignal.timeout(5000)})
+    ]);
+
+    if(!res36.ok || !res37.ok) throw new Error('Registry fetch failed');
+
+    const rel36=await res36.json();
+    const rel37=await res37.json();
+
+    const milestones=[];
+
+    // Extract milestones from registry for 3.6
+    if(rel36.milestones && typeof rel36.milestones==='object'){
+      const m36=rel36.milestones;
+      if(m36.gaRelease) milestones.push({lbl:'3.6 GA Release',date:m36.gaRelease.date||m36.gaRelease,badge:'Informational launch',badgeColor:'#2e7d32'});
+      if(m36.codeFreeze) milestones.push({lbl:'RHOAI 3.6 GA Code Freeze',date:m36.codeFreeze.date||m36.codeFreeze});
+    }
+
+    // Extract milestones from registry for 3.7
+    if(rel37.milestones && typeof rel37.milestones==='object'){
+      const m37=rel37.milestones;
+      if(m37.planning) milestones.push({lbl:'3.7 Planning',date:m37.planning.date||m37.planning,sep:true});
+      if(m37.planningFreeze) milestones.push({lbl:'RHAI Planning Freeze',date:m37.planningFreeze.date||m37.planningFreeze,badge:'Mandatory from here',badgeColor:'#c62828'});
+      if(m37.eaRelease) milestones.push({lbl:'3.7 EA Release',date:m37.eaRelease.date||m37.eaRelease});
+      if(m37.gaRelease) milestones.push({lbl:'3.7 GA Release',date:m37.gaRelease.date||m37.gaRelease});
+    }
+
+    return milestones.length>0?milestones:null;
   } catch(err) {
-    console.warn('Failed to fetch timeline from Product Pages, using fallback dates:', err.message);
-    // Return empty to fall back to hardcoded in renderScheduleStrip
+    console.warn('Failed to fetch timeline from releases registry, using fallback dates:', err.message);
     return null;
   }
 }

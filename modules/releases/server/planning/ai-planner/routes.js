@@ -3,7 +3,6 @@ const { validateSnapshot } = require('./validation');
 const { readAIPlanner, writeAIPlanner, projectSnapshot, emptySnapshot } = require('./storage');
 const { PRIORITY_OUTCOMES, extractOutcomesFromFeatures, calculateOutcomeMetrics } = require('./outcomes-integration');
 const { fetchFeaturesWithTimeout } = require('../feature-query');
-const { fetchScheduleTasks, getProductPagesToken } = require('../../delivery/product-pages');
 
 const DEMO_MODE = process.env.DEMO_MODE === 'true';
 
@@ -254,90 +253,6 @@ module.exports = function registerAIPlannerRoutes(router, context) {
 
     await writeAIPlanner(writeToStorage, { ...emptySnapshot(), lastSyncedAt: new Date().toISOString() });
     res.json({ status: 'cleared' });
-  });
-
-  /**
-   * @openapi
-   * /api/modules/releases/planning/ai-planner/timeline-milestones:
-   *   get:
-   *     summary: Get timeline milestones from Product Pages (source of truth)
-   *     tags: [releases-planning]
-   *     responses:
-   *       200:
-   *         description: Timeline milestones with dates from Product Pages
-   */
-  router.get('/ai-planner/timeline-milestones', requireAuth, requireScope('releases:read'), async function(req, res) {
-    try {
-      const baseUrl = process.env.PRODUCT_PAGES_BASE_URL || 'https://productpages.redhat.com';
-
-      let milestones = [];
-      let source = 'fallback';
-      try {
-        const deliveryConfig = await readFromStorage('releases/delivery/config.json');
-        const token = await getProductPagesToken(deliveryConfig);
-        const headers = token
-          ? { Accept: 'application/json', Authorization: `Bearer ${token}` }
-          : { Accept: 'application/json' };
-
-        const [schedule36, schedule37] = await Promise.all([
-          fetchScheduleTasks('rhoai-3.6', baseUrl, headers),
-          fetchScheduleTasks('rhoai-3.7', baseUrl, headers)
-        ]);
-
-        if (schedule36 && schedule36.length > 0) {
-          const gaDate = schedule36.find(t => t.name && t.name.toLowerCase().includes('ga release'));
-          const codeFreeze = schedule36.find(t => t.name && t.name.toLowerCase().includes('code freeze'));
-
-          if (gaDate) milestones.push({ lbl: '3.6 GA Release', date: gaDate.date_finish, badge: 'Informational launch', badgeColor: '#2e7d32' });
-          if (codeFreeze) milestones.push({ lbl: 'RHOAI 3.6 GA Code Freeze', date: codeFreeze.date_finish });
-        }
-
-        if (schedule37 && schedule37.length > 0) {
-          const planningFreeze = schedule37.find(t => t.name && t.name.toLowerCase().includes('planning freeze'));
-          const planning = schedule37.find(t => t.name && t.name.toLowerCase().includes('planning') && !t.name.toLowerCase().includes('freeze'));
-          const eaRelease = schedule37.find(t => t.name && t.name.toLowerCase().includes('ea release'));
-          const gaRelease = schedule37.find(t => t.name && t.name.toLowerCase().includes('ga release'));
-
-          if (planning) milestones.push({ lbl: '3.7 Planning', date: planning.date_finish, sep: true });
-          if (planningFreeze) milestones.push({ lbl: 'RHAI Planning Freeze', date: planningFreeze.date_finish, badge: 'Mandatory from here', badgeColor: '#c62828' });
-          if (eaRelease) milestones.push({ lbl: '3.7 EA Release', date: eaRelease.date_finish });
-          if (gaRelease) milestones.push({ lbl: '3.7 GA Release', date: gaRelease.date_finish });
-        }
-
-        var allDatesValid = milestones.length > 0 && milestones.every(function(m) {
-          return m.date && !isNaN(new Date(m.date).getTime());
-        });
-        if (allDatesValid) {
-          source = 'product-pages';
-        } else if (milestones.length > 0) {
-          milestones = [];
-        }
-      } catch (ppErr) {
-        console.warn('Could not fetch from Product Pages, using fallback dates:', ppErr.message);
-      }
-
-      if (milestones.length === 0) {
-        milestones = [
-          { lbl: '3.6 GA Release', date: '2026-11-19', badge: 'Informational launch', badgeColor: '#2e7d32' },
-          { lbl: '3.7 Planning', date: '2026-11-17', sep: true },
-          { lbl: 'RHAI Planning Freeze', date: '2026-11-11', badge: 'Mandatory from here', badgeColor: '#c62828' },
-          { lbl: '3.7 EA Release', date: '2027-01-20' },
-          { lbl: '3.7 GA Release', date: '2027-02-17' }
-        ];
-      }
-
-      // Sort milestones chronologically by date
-      milestones.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-      res.json({
-        milestones: milestones,
-        source: source,
-        generatedAt: new Date().toISOString()
-      });
-    } catch (err) {
-      console.error('Timeline milestones fetch error:', err);
-      res.status(500).json({ error: err.message });
-    }
   });
 
   /**
