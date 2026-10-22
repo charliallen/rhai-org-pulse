@@ -18,10 +18,10 @@ The script uses values from `JIRA_VERSIONS` when configured; otherwise it derive
 
 | Value | Source |
 | --- | --- |
-| Code Freeze | Product Pages API, or local release-variable YAML fallback. No JQL. |
-| RC1/RC2 Build Received | Optional `ACTUAL_BUILD_DATES` override → matching Product Pages schedule task → Jira build/test Epic completion date → null. |
-| Test Started | Same Epic query; Jira changelog's first transition to `In Progress`. |
-| Test Finished | Same Epic query; Epic `resolutiondate`, falling back to `updated` only when the Epic is Done. |
+| Code Freeze | Product Pages API; the checked-in release-variable YAML fills the field when Product Pages has no value. No JQL. |
+| RC1/RC2 Build Received | Optional `ACTUAL_BUILD_DATES` override → successful matching Stage Promoter RC run → matching Product Pages RC task (with checked-in release-variable YAML filling a missing schedule field) → Jira RC build-helper Epic `resolutiondate` (`Push to Stage` before `Prepare`) → `null`. Candidates outside known Code Freeze/Test Started bounds are skipped and the next source is tried. |
+| Test Started | Same release-phase Epic query; first Jira changelog transition to `In Progress` on the test Epic. |
+| Test Finished | Same query; test Epic `resolutiondate`, falling back to `updated` only when that test Epic is Done. |
 | TFAs Passed | TFA query below; latest `updated` when every task is In Progress or Done. |
 | TFAs Triaged | TFA query below; latest `updated` when every task is Done. |
 | Blockers Resolved | Resolved-blocker query below; latest `resolutiondate`, falling back to `updated`. |
@@ -29,17 +29,42 @@ The script uses values from `JIRA_VERSIONS` when configured; otherwise it derive
 
 `ACTUAL_BUILD_DATES` is an optional JSON environment variable keyed by release
 and phase, for example `{"rhoai-3.5.EA2":{"RC1 Builds Testing":"2026-07-08"}}`.
-It defaults to empty in the pipeline config, so it has no effect unless
-explicitly configured. When set, it takes precedence over Product Pages and
-Jira for that phase's build date.
+If it is unset or empty, the manual-override source is skipped. When set, it
+takes precedence over the other Build Received sources for that phase.
 
-Test-phase Epics:
+Stage Promoter dates come from successful matching RC runs of the
+`stage-promoter.yaml` GitHub Actions workflow in
+`red-hat-data-services/rhods-devops-infra`. The extractor reads the release and
+build type from the successful `show-info` job log and uses the workflow
+completion date. For each RC it selects the latest matching date after the
+known lower bound—Code Freeze for RC1, or the latest earlier RC's Test Started
+date for later RCs—and on or before that RC's Test Started date. If no lower
+bound is known, only the Test Started upper bound applies. This source is
+skipped if `GITHUB_TOKEN`/`GH_TOKEN` is unset or the API lookup fails.
+
+The release-variable YAML is checked in under the extractor repository's
+`jira/` directory; for example, release `rhoai-3.6.EA2` reads
+`jira/jira-release-variables-3.6.0-ea2.yaml`. The extractor merges its RC
+milestone fields into the schedule only when Product Pages has no value for
+those fields. In that 3.6 EA2 file, `rc1_build_received_date: "2026-09-29"`
+maps to `release_schedule.rc1_build_date`; its adjacent comment cites
+`#rhoai-build-notifications`. This is version-controlled input read by the CI
+extractor, not a file generated on the dashboard host.
+
+Release-phase Epics (Test Started/Finished and Jira build-helper fallback):
 
 ```jql
 (parent = <INITIATIVE_KEY>
  OR "customfield_10014" = <INITIATIVE_KEY>)
 AND issuetype = Epic
 ```
+
+This single query returns the release initiative's Epics; it is used for both
+test-phase dates and the Jira Build Received fallback. The extractor uses the
+`RCn Builds Testing` Epic for Test Started/Finished. For the Jira fallback, it
+uses only RC build-helper Epics named `Prepare RCn` or `RCn Push to Stage`, and
+only their `resolutiondate`; Push to Stage is tried before Prepare. A test
+Epic's transition or completion date does not supply Build Received.
 
 TFA milestones:
 

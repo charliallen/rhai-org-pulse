@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1120" viewBox="0 0 1400 1120" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1480" viewBox="0 0 1400 1480" role="img" aria-labelledby="title desc">
   <title id="title">RC1 and RC2 Build Received date source order</title>
-  <desc id="desc">The optional ACTUAL_BUILD_DATES override takes precedence, followed by a matching Product Pages schedule task, then Jira phase Epic completion dates. If none provides a date, the value is null.</desc>
+  <desc id="desc">Try the manual override, a successful matching Stage Promoter RC run, Product Pages with checked-in release-variable YAML filling missing milestones, then Jira build-helper Epic resolution dates. Skip invalid dates and try the next source. Return null if no valid date is available.</desc>
   <defs>
     <marker id="arrow" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
       <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b" />
@@ -17,60 +17,78 @@
     </style>
   </defs>
 
-  <rect width="1400" height="1120" rx="20" fill="#f8fafc" />
+  <rect width="1400" height="1480" rx="20" fill="#f8fafc" />
   <text x="700" y="62" text-anchor="middle" class="heading">RC1 / RC2 Build Received</text>
   <text x="700" y="98" text-anchor="middle" class="subheading">Source order for <tspan font-family="monospace">phases[].build_ready_date</tspan></text>
 
   <g>
-    <rect x="100" y="140" width="1200" height="170" rx="16" fill="#ffffff" stroke="#93c5fd" stroke-width="2" />
+    <rect x="100" y="140" width="1200" height="160" rx="16" fill="#ffffff" stroke="#93c5fd" stroke-width="2" />
     <circle cx="150" cy="190" r="26" fill="#dbeafe" />
     <text x="150" y="197" text-anchor="middle" class="step">1</text>
     <text x="195" y="183" class="step">OPTIONAL OVERRIDE</text>
     <text x="195" y="224" class="title">ACTUAL_BUILD_DATES</text>
     <text x="195" y="263" class="body">Use the configured date for this release and RC phase, if present.</text>
-    <text x="195" y="290" class="body">The pipeline configuration defaults to empty.</text>
     <rect x="1040" y="181" width="220" height="42" rx="21" fill="#dcfce7" />
     <text x="1150" y="208" text-anchor="middle" class="result">DATE FOUND → use it</text>
   </g>
 
-  <line x1="700" y1="310" x2="700" y2="354" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" />
-  <text x="730" y="340" class="flow">No date → continue</text>
+  <line x1="700" y1="300" x2="700" y2="339" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" />
+  <text x="730" y="328" class="flow">No date, or invalid date → continue</text>
 
   <g>
-    <rect x="100" y="365" width="1200" height="170" rx="16" fill="#ffffff" stroke="#c4b5fd" stroke-width="2" />
-    <circle cx="150" cy="415" r="26" fill="#ede9fe" />
-    <text x="150" y="422" text-anchor="middle" class="step" fill="#6d28d9">2</text>
-    <text x="195" y="408" class="step" fill="#6d28d9">SCHEDULE SOURCE</text>
-    <text x="195" y="449" class="title">Product Pages schedule task</text>
-    <text x="195" y="488" class="body">Match the release and RC1/RC2 task. Use the later of</text>
-    <text x="195" y="515" class="body"><tspan font-family="monospace">date_start</tspan> and <tspan font-family="monospace">date_finish</tspan>; use the available one if only one is set.</text>
-    <rect x="1040" y="406" width="220" height="42" rx="21" fill="#dcfce7" />
-    <text x="1150" y="433" text-anchor="middle" class="result">DATE FOUND → use it</text>
+    <rect x="100" y="350" width="1200" height="190" rx="16" fill="#ffffff" stroke="#c4b5fd" stroke-width="2" />
+    <circle cx="150" cy="400" r="26" fill="#ede9fe" />
+    <text x="150" y="407" text-anchor="middle" class="step" fill="#6d28d9">2</text>
+    <text x="195" y="393" class="step" fill="#6d28d9">GITHUB ACTIONS</text>
+    <text x="195" y="434" class="title">Successful matching Stage Promoter RC run</text>
+    <text x="195" y="473" class="body">Match release and RC build type from the successful <tspan font-family="monospace">show-info</tspan> job log.</text>
+    <text x="195" y="502" class="body">Use latest eligible completion date; requires <tspan font-family="monospace">GITHUB_TOKEN</tspan> or <tspan font-family="monospace">GH_TOKEN</tspan>.</text>
+    <rect x="1040" y="391" width="220" height="42" rx="21" fill="#dcfce7" />
+    <text x="1150" y="418" text-anchor="middle" class="result">DATE FOUND → use it</text>
   </g>
 
-  <line x1="700" y1="535" x2="700" y2="579" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" />
-  <text x="730" y="565" class="flow">No date → continue</text>
+  <line x1="700" y1="540" x2="700" y2="579" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" />
+  <text x="730" y="568" class="flow">No date, or invalid date → continue</text>
 
   <g>
-    <rect x="100" y="590" width="1200" height="220" rx="16" fill="#ffffff" stroke="#fcd34d" stroke-width="2" />
-    <circle cx="150" cy="640" r="26" fill="#fef3c7" />
-    <text x="150" y="647" text-anchor="middle" class="step" fill="#b45309">3</text>
-    <text x="195" y="633" class="step" fill="#b45309">JIRA FALLBACK</text>
-    <text x="195" y="674" class="title">Phase Epic completion date</text>
-    <text x="195" y="713" class="body">First use the completed build Epic's <tspan font-family="monospace">resolutiondate</tspan></text>
-    <text x="195" y="740" class="body">(or <tspan font-family="monospace">updated</tspan> when Done and no resolution date exists).</text>
-    <text x="195" y="777" class="body">If there is no build Epic date, use the completed test Epic date.</text>
+    <rect x="100" y="590" width="1200" height="200" rx="16" fill="#ffffff" stroke="#c4b5fd" stroke-width="2" />
+    <circle cx="150" cy="640" r="26" fill="#ede9fe" />
+    <text x="150" y="647" text-anchor="middle" class="step" fill="#6d28d9">3</text>
+    <text x="195" y="633" class="step" fill="#6d28d9">SCHEDULE SOURCE</text>
+    <text x="195" y="674" class="title">Product Pages; checked-in YAML fills missing fields</text>
+    <text x="195" y="713" class="body">Use the matching Product Pages RC task when it has a date.</text>
+    <text x="195" y="742" class="body">Otherwise use the RC milestone from the checked-in release-variable YAML, if present.</text>
     <rect x="1040" y="631" width="220" height="42" rx="21" fill="#dcfce7" />
     <text x="1150" y="658" text-anchor="middle" class="result">DATE FOUND → use it</text>
   </g>
 
-  <line x1="700" y1="810" x2="700" y2="854" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" />
-  <text x="730" y="840" class="flow">No date from any source</text>
+  <line x1="700" y1="790" x2="700" y2="829" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" />
+  <text x="730" y="818" class="flow">No date, or invalid date → continue</text>
 
   <g>
-    <rect x="100" y="865" width="1200" height="125" rx="16" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2" />
-    <text x="150" y="918" class="step" fill="#475569">FINAL VALUE</text>
-    <text x="350" y="930" class="title"><tspan font-family="monospace">null</tspan></text>
-    <text x="450" y="928" class="body">when no source provides a date</text>
+    <rect x="100" y="840" width="1200" height="220" rx="16" fill="#ffffff" stroke="#fcd34d" stroke-width="2" />
+    <circle cx="150" cy="890" r="26" fill="#fef3c7" />
+    <text x="150" y="897" text-anchor="middle" class="step" fill="#b45309">4</text>
+    <text x="195" y="883" class="step" fill="#b45309">JIRA BUILD-HELPER FALLBACK</text>
+    <text x="195" y="924" class="title">RC build Epic <tspan font-family="monospace">resolutiondate</tspan></text>
+    <text x="195" y="963" class="body">Try <tspan font-family="monospace">RCn Push to Stage</tspan> before <tspan font-family="monospace">Prepare RCn</tspan>.</text>
+    <text x="195" y="992" class="body">Test Epic transitions/completions and build Epic <tspan font-family="monospace">updated</tspan> are not candidates.</text>
+    <rect x="1040" y="881" width="220" height="42" rx="21" fill="#dcfce7" />
+    <text x="1150" y="908" text-anchor="middle" class="result">DATE FOUND → use it</text>
   </g>
+
+  <line x1="700" y1="1060" x2="700" y2="1099" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" />
+  <text x="730" y="1088" class="flow">No valid date from any source</text>
+
+  <g>
+    <rect x="100" y="1110" width="1200" height="125" rx="16" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2" />
+    <text x="150" y="1163" class="step" fill="#475569">FINAL VALUE</text>
+    <text x="350" y="1175" class="title"><tspan font-family="monospace">null</tspan></text>
+    <text x="450" y="1173" class="body">when no source provides a valid date</text>
+  </g>
+
+  <rect x="100" y="1280" width="1200" height="115" rx="16" fill="#eff6ff" stroke="#bfdbfe" stroke-width="2" />
+  <text x="140" y="1325" class="step">DATE VALIDATION</text>
+  <text x="140" y="1361" class="body">Skip candidates before known Code Freeze or after known Test Started; try the next source.</text>
+  <text x="140" y="1388" class="body">Stage Promoter uses Code Freeze or the latest earlier RC test start; test Epic transition never supplies Build Received.</text>
 </svg>

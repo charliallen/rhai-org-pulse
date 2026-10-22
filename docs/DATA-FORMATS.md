@@ -3159,10 +3159,10 @@ version string (spaces and special chars replaced with `_`).
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `release_cycle_metrics.code_freeze_date` | `string \| null` | `YYYY-MM-DD` from Product Pages, falling back to the local release-variable YAML |
+| `release_cycle_metrics.code_freeze_date` | `string \| null` | `YYYY-MM-DD` from Product Pages; the checked-in release-variable YAML fills the field when Product Pages has no value |
 | `release_cycle_metrics.phases[].phase` | `string` | Test-phase Epic summary from Jira (e.g. `"RC1 Builds Testing"`, `"Nightly Build Wk2 - Jun 22"`) |
 | `release_cycle_metrics.phases[].epic_key` | `string` | Jira Epic key (e.g. `"RHOAIENG-68791"`) |
-| `release_cycle_metrics.phases[].build_ready_date` | `string \| null` | `YYYY-MM-DD`; source order: optional `ACTUAL_BUILD_DATES` override, matching Product Pages release/phase task, then Jira build/test Epic completion date |
+| `release_cycle_metrics.phases[].build_ready_date` | `string \| null` | `YYYY-MM-DD`; source order: optional `ACTUAL_BUILD_DATES` override → successful matching Stage Promoter RC run → matching Product Pages RC task (with a checked-in release-variable YAML value filling a missing schedule field) → Jira RC build-helper Epic `resolutiondate` (`Push to Stage` before `Prepare`) → `null` |
 | `release_cycle_metrics.phases[].days_since_code_freeze` | `number \| null` | Working days (Mon–Fri) between `code_freeze_date` and `build_ready_date`; `null` if either is unknown |
 | `release_cycle_metrics.phases[].test_started_date` | `string \| null` | Date of the first Jira changelog status transition to `In Progress` for the test-phase Epic |
 | `release_cycle_metrics.phases[].days_to_test_started` | `number \| null` | Working days from `build_ready_date` to `test_started_date` |
@@ -3174,13 +3174,14 @@ version string (spaces and special chars replaced with `_`).
 | `release_cycle_metrics.phases[].days_to_tfas_triaged` | `number \| null` | Working days from `build_ready_date` to `tfas_triaged_date` |
 | `release_cycle_metrics.phases[].blockers_resolved_date` | `string \| null` | Max `resolutiondate` across all resolved blockers; `null` if any open blockers remain |
 | `release_cycle_metrics.phases[].days_to_blockers_resolved` | `number \| null` | Working days from `build_ready_date` to `blockers_resolved_date` |
-| `release_schedule.rc1_build_date` | `string \| null` | New field added to `release_schedule`; PP schedule task date for RC1 build milestone |
-| `release_schedule.rc2_build_date` | `string \| null` | PP schedule task date for RC2 build milestone |
+| `release_schedule.rc1_build_date` | `string \| null` | Product Pages RC1 milestone date; filled from the checked-in release-variable YAML when Product Pages has no value |
+| `release_schedule.rc2_build_date` | `string \| null` | Product Pages RC2 milestone date; filled from the checked-in release-variable YAML when Product Pages has no value |
 
 **Notes:**
 - All day counts use Mon–Fri only (no public holidays excluded).
-- `ACTUAL_BUILD_DATES` is an optional JSON environment variable keyed by release and phase; it defaults to empty in the refresh pipeline. Jira build-date fallback uses `resolutiondate`, or `updated` when the Epic is Done.
-- Jira test-start dates use the first recorded changelog transition to `In Progress`; Jira completion dates use `resolutiondate` where available. These record Jira's event dates, not necessarily the exact time the build was physically received or testing began.
+- `ACTUAL_BUILD_DATES` is an optional JSON environment variable keyed by release and phase. If it is unset or empty, the manual-override source is skipped.
+- Build Received candidates before Code Freeze or after Test Started are skipped and the next source is tried. The Jira Build Received fallback uses build-helper Epics' `resolutiondate`; it does not use a test Epic's completion date or a Done Epic's `updated` date.
+- Test Started uses the first recorded test-Epic changelog transition to `In Progress`; Test Finished uses that Epic's `resolutiondate`, falling back to `updated` only when it is Done. These are Jira-recorded dates, not necessarily the exact time the build was physically received or testing began.
 - The TFA and blocker dates are release-level (not per-RC); the same date appears in each phase with different `days_to_*` values.
 - `null` means the milestone has not occurred or data is unavailable; the dashboard renders `—` for null.
 

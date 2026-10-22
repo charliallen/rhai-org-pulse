@@ -5,7 +5,7 @@
 The diagram shows how the Release Cycle Metrics value
 `phases[].build_ready_date` is selected for RC1 and RC2.
 
-![RC1 and RC2 Build Received source order: ACTUAL_BUILD_DATES override, Product Pages schedule task, Jira Epic completion date, then null](assets/rc-build-date-source.svg)
+![RC1 and RC2 Build Received source order: ACTUAL_BUILD_DATES override, Stage Promoter, Product Pages with checked-in YAML fallback, Jira build-helper Epic resolution date, then null](assets/rc-build-date-source.svg)
 
 ## Source conventions
 
@@ -225,8 +225,8 @@ The Product Pages client performs these calls:
 
 | Displayed value | Source and fallback |
 | --- | --- |
-| Code Freeze | Product Pages schedule; local release-variable YAML if Product Pages has no date. |
-| RC1/RC2 Build Received (`phases[].build_ready_date`) | Optional `ACTUAL_BUILD_DATES` override (empty by default) → matching Product Pages release/RC task → Jira build Epic completion date; if there is no build Epic date, completed test Epic date; otherwise `null`. |
+| Code Freeze | Product Pages schedule; the checked-in release-variable YAML fills the field when Product Pages has no value. |
+| RC1/RC2 Build Received (`phases[].build_ready_date`) | Optional `ACTUAL_BUILD_DATES` override → successful matching Stage Promoter RC run → matching Product Pages RC task (checked-in release-variable YAML fills a missing schedule field) → Jira RC build-helper Epic `resolutiondate` (`Push to Stage` before `Prepare`) → `null`. Candidates before Code Freeze or after Test Started are skipped and the next source is tried. |
 | Test Started | First Jira changelog transition to `In Progress` on the test-phase Epic. |
 | Test Finished | Jira test-phase Epic `resolutiondate`; `updated` only if the Epic is Done and has no resolution date. |
 | TFAs Passed | Latest TFA task `updated` date once every task is In Progress or Done. |
@@ -234,7 +234,7 @@ The Product Pages client performs these calls:
 | Blockers Resolved | `null` while any blocker is open; otherwise latest resolved blocker `resolutiondate`, falling back to `updated`. |
 | Working-day counts | Calculated locally from the dates; Monday–Friday only, with no public holidays excluded. |
 
-### 9. Test-phase Epics for Nightly/RC dates
+### 9. Release-phase Epic query for Test Started/Finished and RC build helpers
 
 - Function: `fetch_test_phase_epic_dates()`
 - JQL:
@@ -247,17 +247,34 @@ The Product Pages client performs these calls:
 
 - Requests `summary`, `status`, `updated`, `resolutiondate`, and `issuetype`,
   and expands the Jira changelog for status transitions.
-- Python classifies summaries into Nightly, RC1, RC2, or RC3 and identifies build
-  Epics versus test Epics.
+- The query returns the release initiative's Epics used by both test-phase date
+  extraction and the Jira Build Received fallback. Python classifies summaries
+  into Nightly, RC1, RC2, or RC3 and identifies build Epics versus test Epics.
 - Test start uses the earliest Jira changelog status transition to `In Progress`.
   Test completion uses `resolutiondate`, falling back to `updated` only when the
-  Epic is Done. The Jira build-date fallback uses a completed build Epic's
-  `resolutiondate` (or Done `updated`); a completed test Epic can supply it when
-  no build Epic date exists.
-- Build-date source order is optional `ACTUAL_BUILD_DATES` override, then the
-  matching Product Pages release/phase schedule task, then the Jira completion
-  date; the value is null if all are unavailable. The override is read from an
-  environment variable and defaults to empty in the pipeline config.
+  test Epic is Done. Build Received uses separate sources: the optional manual
+  override, successful matching Stage Promoter RC completion, Product Pages
+  schedule (filled by checked-in release-variable YAML when a schedule field is
+  missing), then Jira build-helper Epic `resolutiondate`. The Jira fallback
+  uses `Push to Stage` before `Prepare`; test Epic transition/completion dates
+  are not Build Received candidates, and `updated` is not a build-date fallback.
+- Candidate Build Received dates before Code Freeze or after Test Started are
+  skipped so the next source can be tried. If no candidate is available and
+  valid, the value is `null`.
+- Stage Promoter data comes from successful matching runs of
+  `red-hat-data-services/rhods-devops-infra`'s `stage-promoter.yaml` GitHub
+  Actions workflow. The extractor matches release/build type from the successful
+  `show-info` job log and uses the run completion date. For each RC it selects
+  the latest matching date after the known lower bound—Code Freeze for RC1, or
+  the latest earlier RC's Test Started date for later RCs—and on or before that
+  RC's Test Started date. If no lower bound is known, only the Test Started
+  upper bound applies. It skips this source when `GITHUB_TOKEN`/`GH_TOKEN` is
+  unset or the API lookup fails.
+- The release-variable YAML is checked in under the extractor repository's
+  `jira/` directory (for example, `jira/jira-release-variables-3.6.0-ea2.yaml`).
+  The extractor merges those RC milestone values into the schedule only when
+  Product Pages has no value for the corresponding fields; CI reads this
+  version-controlled file.
 - Feeds the Test Execution Phases accordion and the Jira fallback for cycle
   build dates.
 
@@ -432,11 +449,13 @@ executed during extraction.
 - Release Cycle Metrics:
   - Displays code freeze, RC1/RC2 build-received dates, working-day counts,
     test start/finish, TFA milestones, and blocker resolution.
-  - Build-date source order: optional `ACTUAL_BUILD_DATES` override, matching
-    Product Pages schedule task, Jira Epic completion fallback. Other dates
-    come from the Product Pages code-freeze schedule or local YAML fallback,
-    Jira test-phase/TFA/blocker queries; working-day counts are calculated
-    locally.
+  - Build-date source order: optional `ACTUAL_BUILD_DATES` override, Stage
+    Promoter, Product Pages schedule with checked-in release-variable YAML
+    filling missing fields, then Jira build-helper Epic `resolutiondate`.
+    Candidates outside known Code Freeze/Test Started bounds are skipped.
+    Other dates come from the Product Pages code-freeze schedule or checked-in
+    YAML fallback and Jira test-phase/TFA/blocker queries; working-day counts
+    are calculated locally.
 
 ## Known data caveat
 
