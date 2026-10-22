@@ -304,7 +304,14 @@ module.exports = function registerAIPlannerRoutes(router, context) {
           if (gaRelease) milestones.push({ lbl: '3.7 GA Release', date: gaRelease.date_finish });
         }
 
-        if (milestones.length > 0) source = 'product-pages';
+        var allDatesValid = milestones.length > 0 && milestones.every(function(m) {
+          return m.date && !isNaN(new Date(m.date).getTime());
+        });
+        if (allDatesValid) {
+          source = 'product-pages';
+        } else if (milestones.length > 0) {
+          milestones = [];
+        }
       } catch (ppErr) {
         console.warn('Could not fetch from Product Pages, using fallback dates:', ppErr.message);
       }
